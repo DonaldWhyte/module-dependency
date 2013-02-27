@@ -1,5 +1,5 @@
 from blocked_module import initialise
-import os.path
+from os.path import abspath
 
 class Hasher:
 

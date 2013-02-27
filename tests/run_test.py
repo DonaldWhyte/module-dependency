@@ -2,7 +2,7 @@ import sys
 import os
 import unittest
 
-def runTests(testDirectory, projectDirectory = None, testName = None):
+def runTests(testDirectory, projectDirectory = None, testName = None, workingDirectory = None):
 	"""Run unit tests from files with filenames of the form test_*.py.
 
 	Arguments:
@@ -14,6 +14,8 @@ def runTests(testDirectory, projectDirectory = None, testName = None):
 						system path for module imports. (default: None)
 	testName -- Name of specific test to run. If None, then all the test
 				files within the test directory will used. (default: None)
+	workingDirectory -- Working directory tests must be executed in for
+						them in function correctly (default: None)
 
 	"""
 	# Store current working directory so it can be restored later
@@ -28,6 +30,9 @@ def runTests(testDirectory, projectDirectory = None, testName = None):
 		# Before processing tests, ensure desired project directory has been set
 		if projectDirectory:
 			os.environ["PROJECT_ROOT_DIRECTORY"] = projectDirectory
+		# Also ensure that the current working is changed if it was specified
+		if workingDirectory:
+			os.chdir( os.path.abspath(workingDirectory) )
 		# Perform the search for desired test
 		suites = unittest.defaultTestLoader.discover(testDirectory, pattern=searchPattern)
 		# Run all found test suites
@@ -38,11 +43,11 @@ def runTests(testDirectory, projectDirectory = None, testName = None):
 		if oldValue:
 			os.environ["PROJECT_ROOT_DIRECTORY"] = oldValue
 
-def main(projectDirectory, testName):
+def main(projectDirectory, testName, workingDirectory):
 	"""Entry point of test script."""
 	# Run specified tests using file's current directory as searching point
 	testDirectory = os.path.abspath( os.path.dirname(__file__) )
-	runTests(testDirectory, projectDirectory, testName)	
+	runTests(testDirectory, projectDirectory, testName, workingDirectory)	
 
 
 
@@ -57,11 +62,14 @@ if __name__ == "__main__":
 			arguments = arguments[:-1] # take last arg off 
 	# Look in pairs for deisred information
 	projectDirectory = None
-	testName = None			
+	testName = None
+	workingDirectory = None
 	for i in range(0, len(arguments), 2):
 		if arguments[i] ==  "-d":
 			projectDirectory = arguments[i + 1]
 		elif arguments[i] == "-t":
 			testName = arguments[i + 1]
+		elif arguments[i] == "-w":
+			workingDirectory = arguments[i + 1]
 	# Run program
-	main(projectDirectory, testName)
+	main(projectDirectory, testName, workingDirectory)
