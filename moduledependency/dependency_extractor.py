@@ -48,6 +48,29 @@ class ModuleDependencyExtractor(TextExtractor):
 				del modules[i]
 
 	def extractFromString(self, data):
+		REGULAR_IMPORT = re.compile( r"^\s*import\s+([\.\w]+)" )
+		FROM_IMPORT_ABSOLUTE = re.compile( r"from\s+([\w][\w\.]*)\s+import\s+([\w\*\.]+,\s*)*([\w\*\.]+)" )
+		FROM_IMPORT_RELATIVE = re.compile( r"from\s+\.([\w\.]*)\s+import\s+([\w\*\.]+,\s*)*([\w\*\.]+)")
+
+		# TODO: calculate full module name
+		fullModuleName = ""
+
+		hierarchy = fullModuleName.split(".")
+		if len(hierarchy) == 0:
+			rootPackage = ""
+		else:
+			rootPackage = ".".join( fullModuleName[:-1] )
+
+		for match in REGULAR_IMPORT.finditer(data):
+			print( "REGULAR", match.group(0) )
+		for match in REGULAR_IMPORT.finditer(data):
+			print( "ABSOLUTE", match.group(0) )
+		for match in REGULAR_IMPORT.finditer(data):
+			print( "RELATIVE", match.group(0) )
+		print()
+		return set()
+
+
 		# Search code for any import statements and add each match as a
 		# dependency of this source file
 		foundDependencies = set()

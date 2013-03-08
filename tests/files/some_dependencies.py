@@ -11,12 +11,6 @@ from .m import *
 from .n import o.p
 from .q import another_dummy, *
 
-
-
-
-
-
-
 class DummyClass:
 
 	def something():
@@ -31,6 +25,3 @@ def somethingEntirelyDifferent():
 
 if __name__ == "__main__":
 	initialise()
-
-
-
