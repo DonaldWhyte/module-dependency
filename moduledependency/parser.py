@@ -51,7 +51,6 @@ class ImportParser:
 		return self.currentToken()
 
 	def addImport(self, moduleName, isRelative):
-		#print("IMPORT FOUND: {}, {}".format(moduleName, isRelative))
 		self.foundImports.append( ParsedImport(moduleName, isRelative) )
 
 	def parse(self, tokens):
@@ -61,17 +60,16 @@ class ImportParser:
 
 		self.clear()
 		self.tokens = tokens
-
-		token = self.currentToken()
-		while token:
-			print(token)
+		# While we have not reached the end of the token list
+		while self.currentToken():
+			token = self.currentToken()
 			if token.type == "import":
 				self.parseImport()
 			elif token.type == "from":
-				print("HELLO!")
 				self.parseFrom()
-			else: # only go to next token if another parsing method was not called
-				token = self.nextToken()
+			# Only go to next token if another parsing method was not called
+			else:
+				self.nextToken()
 
 		temp = self.foundImports
 		self.clear()
@@ -91,61 +89,13 @@ class ImportParser:
 
 		#print("...done parsing import statement.")
 
-	def parseDottedIdentifier(self):
-		"""Parse a series of identifiers separated with the "." operator.
-
-		Returns this series of identifiers as a string. If no valid
-		identifier could be found immediately, then None is returned.
-
-		"""
-		#print("Parsing dotted identifier...")
-
-		token = self.currentToken()
-		if not token:
-			raise ParseError("Unexpected end of tokens")
-		# Check straight away if the next token is the "all" wildcard.
-		# if it is, just return "*" as the identifier
-		elif token.type == "*":
-			return "*"
-		# Also check if the first token is an identifier. A valid
-		# dootted identifier must START with an "identifier" token
-		elif token.type != "identifier":
-			raise ParseError("Dotted identifier must start with an identifier token")
-
-		name = ""
-		lookingForDot = False
-		while True:
-			if lookingForDot:
-				if not token: # if end of tokens has been reached
-					break
-				elif token.type == "identifier":
-					break # this is valid - just means it's the end of the current dotted identifier
-				elif token.type == ".":
-					name += "."
-					lookingForDot = False
-				else:
-					break
-			else:
-				if not token:
-					raise ParseError("Unexpected end of tokens - trailing dot operator")
-				elif token.type == "identifier":
-					name += token.value
-					lookingForDot = True
-				elif token.type == ".":
-					raise ParseError("Invalid identifier - two consecutive dot operators present")
-				else: # end parsing dotted identifier
-					break
-
-			token = self.nextToken()
-
-		if name == "":
-			return None
-		else:
-			return name
-
 	def parseFrom(self):
-		"""Parse "from" import statements."""
-		#print("Parsing from statement...")
+		"""Parse "from" import statements.
+
+		TODO: mention the fact no '.' exists at start of module UNLESS
+		root is current package level and not a root module"""
+		searchForRootModule = True
+
 		# Determine if the from statement is absolute or relative.
 		# If it's relative, then the otken straight after the
 		# "from" keyword should be a ".".
@@ -154,15 +104,22 @@ class ImportParser:
 			raise ParseError("Unexpected end of tokens")
 		elif token.type == ".":
 			isRelative = True
+			# Skip the "." and move to root package/module name
+			token = self.nextToken()
+			# Now check if there is an "import" token. It's valid
+			# to just have a "." before "import" in a "from statement"
+			if token.type == "import":
+				searchForRootModule = False
 		else:
-			# We manually go back one token as we skipped part of the root module name
-			self.index -= 1
 			isRelative = False
 
-		# Find the ROOT module name
-		rootModuleName = self.parseDottedIdentifier()
-		if not rootModuleName:
-			raise ParseError("Module identifier should follow a 'from' keyword")
+		# Find the ROOT module name if root is not "."
+		if searchForRootModule:
+			rootModuleName = self.parseDottedIdentifier()
+			if not rootModuleName:
+				raise ParseError("Module identifier should follow a 'from' keyword")
+		else:
+			rootModuleName = ""
 		# The next token should now be an "import" token
 		token = self.currentToken()
 		if not token:
@@ -170,6 +127,7 @@ class ImportParser:
 		elif token.type != "import":
 			raise ParseError("'import' keyword should follow root moudle name in 'from' import statement: " + str(token))		
 		# Now get the name of all the objects
+		self.nextToken() # skip the import tag
 		importedObjects = self.parseImportedObjects()
 
 		# If there were no objects imported using the 'from' satement
@@ -206,3 +164,55 @@ class ImportParser:
 		#print("...done parsing imported objects.")
 
 		return importedObjects
+
+	def parseDottedIdentifier(self):
+		"""Parse a series of identifiers separated with the "." operator.
+
+		Returns this series of identifiers as a string. If no valid
+		identifier could be found immediately, then None is returned.
+
+		"""
+		#print("Parsing dotted identifier...")
+		token = self.currentToken()
+		if not token:
+			raise ParseError("Unexpected end of tokens")
+		# Check straight away if the next token is the "all" wildcard.
+		# if it is, just return "*" as the identifier
+		elif token.type == "*":
+			self.nextToken()
+			return "*"
+		# Also check if the first token is an identifier. A valid
+		# dootted identifier must START with an "identifier" token
+		elif token.type != "identifier":
+			raise ParseError("Dotted identifier must start with an identifier token")
+
+		name = ""
+		lookingForDot = False
+		while True:
+			if lookingForDot:
+				if not token: # if end of tokens has been reached
+					break
+				elif token.type == "identifier":
+					break # this is valid - just means it's the end of the current dotted identifier
+				elif token.type == ".":
+					name += "."
+					lookingForDot = False
+				else:
+					break
+			else:
+				if not token:
+					raise ParseError("Unexpected end of tokens - trailing dot operator")
+				elif token.type == "identifier":
+					name += token.value
+					lookingForDot = True
+				elif token.type == ".":
+					raise ParseError("Invalid identifier - two consecutive dot operators present")
+				else: # end parsing dotted identifier
+					break
+
+			token = self.nextToken()
+
+		if name == "":
+			return None
+		else:
+			return name

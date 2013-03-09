@@ -67,14 +67,10 @@ class TestImportParser(unittest.TestCase):
 		self.foundImports = [
 			ParsedImport("a", False), ParsedImport("a.b", False), ParsedImport("c", False),
 			ParsedImport("d.e", False), ParsedImport("d.f", False), ParsedImport("g", False),
-			ParsedImport("h", True), ParsedImport("i", True), ParsedImport("j", True),
+			ParsedImport(".h", True), ParsedImport(".i", True), ParsedImport(".j", True),
 			ParsedImport("k.l", True), ParsedImport("m", True), ParsedImport("n.o.p", True),
 			ParsedImport("q", True),
 			ParsedImport("sys.path", False), ParsedImport("bang", False),
-
-			ParsedImport("moduleName", False), ParsedImport("this)_a_modue", True)
-
-
 		]
 
 	def tearDown(self):
@@ -93,7 +89,7 @@ class TestImportParser(unittest.TestCase):
 		# Test with valid imports
 		self.assertEqual(self.parser.parse(self.validImportTokens), self.foundImports)
 
-	def test_parseDottedIdentifier(self):
+	"""def test_parseDottedIdentifier(self):
 		invalidIdentifierTokens1 = [ Token("other", "(") ]
 		invalidIdentifierTokens2 = [ Token(".") ]
 		invalidIdentifierTokens3 = [ Token("identifier", "invalid"), Token(".") ]
@@ -217,7 +213,7 @@ class TestImportParser(unittest.TestCase):
 		self.assertEqual(self.parser.index, 3)
 		self.parser.clear()	
 		# Test with two identifiers
-		self.parser.tokens = Token("identifier", "one"), Token(","), Token("identifier", "two")
+		self.parser.tokens = [ Token("identifier", "one"), Token(","), Token("identifier", "two") ]
 		self.assertEqual(self.parser.parseImportedObjects(), ["one", "two"])
 		self.assertEqual(self.parser.index, 3)
 		self.parser.clear()	
@@ -227,10 +223,74 @@ class TestImportParser(unittest.TestCase):
 			Token("."), Token("identifier", "eighty"), Token(","), Token("identifier", "four") ]
 		self.assertEqual(self.parser.parseImportedObjects(), ["one.fifty", "two", "three.eighty", "four"])
 		self.assertEqual(self.parser.index, 11)
-		self.parser.clear()	
-
+		self.parser.clear()
 
 	def test_parseFrom(self):
-		pass
-		# TODO
-
+		# Absolute imports
+		# Test with a single identifier
+		self.parser.tokens = [ Token("from"), Token("identifier", "absolute"), Token("import"), Token("identifier", "one") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [ ParsedImport("absolute.one", False)] )
+		self.parser.clear()	
+		# Test with a single identifier
+		self.parser.tokens = [ Token("from"), Token("identifier", "absolute"), Token("import"),
+			Token("identifier", "one"), Token("."), Token("identifier", "fifty") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [ ParsedImport("absolute.one.fifty", False) ] )
+		self.parser.clear()	
+		# Test with two identifiers
+		self.parser.tokens = [ Token("from"), Token("identifier", "absolute"), Token("import"),
+			Token("identifier", "one"), Token(","), Token("identifier", "two") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [
+			ParsedImport("absolute.one", False),
+			ParsedImport("absolute.two", False)
+		] )
+		self.parser.clear()
+		# Test with more than two identifiers
+		self.parser.tokens = [ Token("from"), Token("identifier", "absolute"), Token("import"), 
+			Token("identifier", "one"), Token("."), Token("identifier", "fifty"),
+			Token(","), Token("identifier", "two"), Token(","), Token("identifier", "three"),
+			Token("."), Token("identifier", "eighty"), Token(","), Token("identifier", "four") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [
+			ParsedImport("absolute.one.fifty", False),
+			ParsedImport("absolute.two", False),
+			ParsedImport("absolute.three.eighty", False),
+			ParsedImport("absolute.four", False)
+		] )
+		self.parser.clear()	
+		# Relative imports
+		# Test with a single identifier
+		self.parser.tokens = [ Token("from"), Token("."), Token("identifier", "relative"), Token("import"), Token("identifier", "one") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [ ParsedImport("relative.one", True)] )
+		self.parser.clear()	
+		# Test with a single identifier
+		self.parser.tokens = [ Token("from"), Token("."), Token("identifier", "relative"), Token("import"),
+			Token("identifier", "one"), Token("."), Token("identifier", "fifty") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [ ParsedImport("relative.one.fifty", True) ] )
+		self.parser.clear()	
+		# Test with two identifiers
+		self.parser.tokens = [ Token("from"), Token("."), Token("identifier", "relative"), Token("import"),
+			Token("identifier", "one"), Token(","), Token("identifier", "two") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [
+			ParsedImport("relative.one", True),
+			ParsedImport("relative.two", True)
+		] )
+		self.parser.clear()
+		# Test with more than two identifiers
+		self.parser.tokens = [ Token("from"), Token("."), Token("identifier", "relative"), Token("import"), 
+			Token("identifier", "one"), Token("."), Token("identifier", "fifty"),
+			Token(","), Token("identifier", "two"), Token(","), Token("identifier", "three"),
+			Token("."), Token("identifier", "eighty"), Token(","), Token("identifier", "four") ]
+		self.parser.parseFrom()
+		self.assertEqual(self.parser.foundImports, [
+			ParsedImport("relative.one.fifty", True),
+			ParsedImport("relative.two", True),
+			ParsedImport("relative.three.eighty", True),
+			ParsedImport("relative.four", True)
+		] )
+		self.parser.clear()"""
