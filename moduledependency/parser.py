@@ -1,3 +1,7 @@
+# TODO: add docstrings to this
+import hashlib
+
+
 class ParseError(ValueError):
 
 	def __init__(self, *args):
@@ -29,6 +33,22 @@ class ParsedImport:
 	def __ne__(self, other):
 		return (self.moduleName != other.moduleName or self.relative != other.relative)
 
+	def __hash__(self):
+		"""Return SHA-1 hash of this object.
+
+		Done so ParsedImport objects can be stored in sets."""
+		
+		# Convert object to series of bytes (string for name and byte for relative flag)
+		data = bytearray(self.moduleName, encoding="utf-8")
+		if self.relative:
+			data.append(1)
+		else:
+			data.append(0)
+		# Hash the raw byte data
+		hasher = hashlib.sha1()
+		hasher.update(data)
+		return int.from_bytes( hasher.digest(), byteorder="little" )
+
 
 class ImportParser:
 
@@ -36,7 +56,7 @@ class ImportParser:
 		self.clear()
 
 	def clear(self):
-		self.foundImports = []
+		self.foundImports = set()
 		self.tokens = []
 		self.index = 0
 
@@ -51,12 +71,12 @@ class ImportParser:
 		return self.currentToken()
 
 	def addImport(self, moduleName, isRelative):
-		self.foundImports.append( ParsedImport(moduleName, isRelative) )
+		self.foundImports.add( ParsedImport(moduleName, isRelative) )
 
 	def parse(self, tokens):
 		# If no tokens were given, don't bother trying to parse
 		if len(tokens) == 0:
-			return []
+			return set()
 
 		self.clear()
 		self.tokens = tokens

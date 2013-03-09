@@ -1,104 +1,120 @@
+# TODO: add docstrings
+
 import sys
 sys.path.append("../../fileprocessor") # TODO: remove
-import re
 from collections import Iterable
+
 from fileprocessor.extractors import TextExtractor
+from .tokeniser import Tokeniser
+from .parser import ImportParser, ParsedImport
 
 class ModuleDependencyExtractor(TextExtractor):
-
-	# Pre-compiled regexes for finding module imports
-	IMPORT_REGEX = re.compile( r"import ([\w\.]+?)[^\w\.]" )
-	FROM_IMPORT_REGEX = re.compile( r"from ([\w\.]+?) import ((([\w\.]+?)[^\w\.])|\*)" )
 
 	def __init__(self, whitelist = None):
 		if whitelist != None and not isinstance(whitelist, Iterable):
 			raise TypeError("Whitelist must be an iterable collection of strings")
 		self.whitelist = whitelist				
 
+		self.tokeniser = Tokeniser()
+		self.parser = ImportParser()
+
 	def usingWhitelist(self):
 		return (self.whitelist != None)
 
-	def filterModules(self, modules):
-		# NOTE: modules list is modified in place
+	def belongsTo(self, package, module):
+		"""Check if module belongs to package based on their full names.
 
-		# TODO: might have to be more intelligent here. For example, if
-		# "foo.bar" is not in whitelist, but "foo" is, "foo.bar" should
-		# be allowed! So we check the "highest level" module from the
-		i = 0
-		while i < len(modules):
-			# Get name of each level of the module (e.g. "foo.bar" is ["foo", "bar"])
-			moduleLevels = modules[i].split(".")
-			# Go through module levels, checking if they're in the
-			# whitelist. Start from the highest level
-			allowed = False
-			for i in range(len(moduleLevels)):
-				# Only combine module levels for the current level
-				trimmedModuleLevels = moduleLevels[:i]
-				# If this module level is in the whitelist, set a
-				# flag and break from the loop
-				if ".".join(trimmedModuleLevels) in self.whitelist:
-					allowed = True
-					break
-			# If one of the module levels was in the whitelist,
-			# simply move to the next module. Otherwise, delete the
-			# the module!
-			if allowed:
-				i += 1
-			else:
-				del modules[i]
+		Returns True if module belongs to package and False otherwise.
+		If package name is empty (""), then True is always returned.
+		If module name is empty (""), then False is always returned
+		unless the package name is also empty.
+
+		Example:
+		belongsTo("packageA.foo", "packageA.foo.bar") = True
+		belongsTo("packageA.foo", "foo") = False
+
+		Arguments:
+		package -- Full name of package
+		module -- Full name of module
+
+		"""
+		if len(package) == 0:
+			return True
+		if len(module) == 0:
+			return False
+		packageComponents = package.split(".")
+		moduleComponents = module.split(".")
+		# If there are more components in the package, then it's not
+		# possible for the module to belong to the package
+		if len(packageComponents) > len(moduleComponents):
+			return False
+		# Now get a sub list of the module components and compare it with
+		# the package components. If they're equal, then that means the
+		# module belongs to the package.
+		return (packageComponents == moduleComponents[:len(packageComponents)])
+
+	def packageHasComponent(self, package, component):
+		"""Check if module component is part of a package's name.
+
+		Returns True if the package has that component and False otherwise.
+		If package name OR module name is empty (""), then False is always
+		returned. If they're BOTH empty, True is returned
+
+		Arguments:
+		package -- Full name of package
+		component -- Component to check if it
+
+		"""
+		if len(package) == 0 and len(component) == 0:
+			return True
+		elif len(package) == 0 or len(component) == 0:
+			return False
+		else:
+			return (component in package.split("."))
+
+	def inWhitelist(self, dependency):
+		"""Check if dependency is in the extractor's whitelist.
+
+		Returns True if it is in the whitelist and False otherwise.
+		If the extractor is not using a whitelist, then this
+		method will always return True as all modules are allowed.
+
+		Arguments:
+		dependency -- instance of ParsedImport
+
+		"""
+		if not self.usingWhitelist():
+			return True
+
+		moduleName = dependency.moduleName
+		if dependency.relative:
+			# Check if the relative import was of the form "from . import X".
+			# If so, remove the "." prefix
+			if moduleName[0] == ".":
+				moduleName = moduleName[1:]
+			for name in self.whitelist:
+				# Check if whitelisted package contains the relative module OR it
+				# at least contains the relative module somewhere
+				if self.belongsTo(name, moduleName) or self.packageHasComponent(name, moduleName):
+					return True
+		else:
+			for name in self.whitelist:
+				# Check if module name belongs to the whitelisted package/module
+				if self.belongsTo(name, moduleName):
+					return True
+		return False
+
+	def applyWhitelist(self, dependencies):
+		# Do nothing if we're not even using a whitelist
+		if not self.usingWhitelist:
+			return
+		allowedDependencies = [ dep for dep in dependencies if self.inWhitelist(dep) ]
+		return set(allowedDependencies)
 
 	def extractFromString(self, data):
-		REGULAR_IMPORT = re.compile( r"^\s*import\s+([\.\w]+)" )
-		FROM_IMPORT_ABSOLUTE = re.compile( r"from\s+([\w][\w\.]*)\s+import\s+([\w\*\.]+,\s*)*([\w\*\.]+)" )
-		FROM_IMPORT_RELATIVE = re.compile( r"from\s+\.([\w\.]*)\s+import\s+([\w\*\.]+,\s*)*([\w\*\.]+)")
-
-		# TODO: calculate full module name
-		fullModuleName = ""
-
-		hierarchy = fullModuleName.split(".")
-		if len(hierarchy) == 0:
-			rootPackage = ""
-		else:
-			rootPackage = ".".join( fullModuleName[:-1] )
-
-		for match in REGULAR_IMPORT.finditer(data):
-			print( "REGULAR", match.group(0) )
-		for match in REGULAR_IMPORT.finditer(data):
-			print( "ABSOLUTE", match.group(0) )
-		for match in REGULAR_IMPORT.finditer(data):
-			print( "RELATIVE", match.group(0) )
-		print()
-		return set()
-
-
-		# Search code for any import statements and add each match as a
-		# dependency of this source file
-		foundDependencies = set()
-		for match in self.IMPORT_REGEX.finditer(data):
-			foundDependencies.add(match.group(1))
-		for match in self.FROM_IMPORT_REGEX.finditer(data):
-			fullModuleName = "{}.{}".format(match.group(1), match.group(2))
-			# Get rid of any extra whitespace regex may have caused
-			fullModuleName = fullModuleName.strip()
-			# If ends with "*", we just use the package name as the dependency
-			if fullModuleName.endswith("*"):
-				fullModuleName = fullModuleName[:-2]
-			foundDependencies.add(fullModuleName)
-
-		# Add higher-level modules of dependencies too
-		higherLevelDependencies = set()
-		for dependency in foundDependencies:
-			levels = dependency.split(".")
-			for i in range(len(levels)):
-				fullLevelName = ".".join(levels[:i])
-				higherLevelDependencies.add(fullLevelName)
-		foundDependencies = foundDependencies.union(higherLevelDependencies)
-
-		# Filter the dependencies so only modules in this project are present.
-		# Only do this if a whitelist was provided though
-		print(foundDependencies)
+		tokens = self.tokeniser.tokenise(data)
+		foundDepdendencies = self.parser.parse(tokens)
 		if self.usingWhitelist():
-			self.filterModules(foundDependencies)
-
-		# Convert list of found dependencies to set to ensure there is no duplication
-		return foundDependencies
+			return self.applyWhitelist(foundDepdendencies)
+		else:
+			return foundDepdendencies
