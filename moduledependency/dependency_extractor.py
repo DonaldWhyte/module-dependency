@@ -1,7 +1,5 @@
 # TODO: add docstrings
 
-import sys
-sys.path.append("../../fileprocessor") # TODO: remove
 from collections import Iterable
 
 from fileprocessor.extractors import TextExtractor
