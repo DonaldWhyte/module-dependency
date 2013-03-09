@@ -100,13 +100,56 @@ class TestTokeniser(unittest.TestCase):
 		self.noImportTokens = None
 		self.importTokens = None
 
-	def test_tokenise(self):
-		# Test with invalid type
-		with self.assertRaises(TypeError):
-			self.tokeniser.tokenise(3636)
-		# Test with empty Python source code
-		self.assertEqual(self.tokeniser.tokenise(""), [])
-		# Test with source code that has no imports
-		self.assertEqual(self.tokeniser.tokenise(self.noImportSource), self.noImportTokens)
-		# Test with source code that has imports
-		self.assertEqual(self.tokeniser.tokenise(self.importSource), self.importTokens)
+	# def test_tokenise(self):
+	# 	# Test with invalid type
+	# 	with self.assertRaises(TypeError):
+	# 		self.tokeniser.tokenise(3636)
+	# 	# Test with empty Python source code
+	# 	self.assertEqual(self.tokeniser.tokenise(""), [])
+	# 	# Test with source code that has no imports
+	# 	self.assertEqual(self.tokeniser.tokenise(self.noImportSource), self.noImportTokens)
+	# 	# Test with source code that has imports
+	# 	self.assertEqual(self.tokeniser.tokenise(self.importSource), self.importTokens)
+
+	def test_skipComment(self):
+		# First element of tuple is the index to start skipping from
+		# and the second element is the desired end element
+		TEST_SOURCE = """#comment at the start
+		hello = 5 # comment at the end of a thing
+		# # # # nestetd comment
+		"""
+		TEST_INDICES = [ (0, 21), (31, 65), (66, 91) ]
+		for test in TEST_INDICES:
+			self.tokeniser.clear()
+			self.tokeniser.source = TEST_SOURCE
+			self.tokeniser.index = test[0]
+			self.tokeniser.skipComment()
+			self.assertEqual(self.tokeniser.index, test[1])
+
+	def test_skipString(self):
+		# Contains tuples where the first element is the index of
+		# the character the test should start at, the second
+		# element is where the tokeniser should stop skipping and
+		# the third element is the delimiter of the test string
+		TEST_INDICES = [ 
+			(31, 37, "\""),
+			(49, 54, "\'"),
+			(68, 88, "\"\"\""),
+			(102, 130, "'''"),
+			(142, 156, "\"")
+		]
+		# Set the source code that will be used for comment skipping
+		TEST_SOURCE = """#comment at the start
+		test = "hello"
+		test2 = 'ello'
+		test3 = \"\"\"hello
+		multiline\"\"\"
+		test4 = '''can be multiline but isn't'''
+		no_end=" ijruiytie
+		"""
+		for test in TEST_INDICES:
+			self.tokeniser.clear()
+			self.tokeniser.source = TEST_SOURCE
+			self.tokeniser.index = test[0]
+			self.tokeniser.skipString(test[2])
+			self.assertEqual(self.tokeniser.index, test[1])

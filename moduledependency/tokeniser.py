@@ -223,9 +223,7 @@ class Tokeniser:
 				if len(buff) > 0:
 					if buff[-1] == ch:
 						buff += ch
-					else:
+					else: # empty buffer since the delimiter doesn't match the one we want
 						buff = ""
 				else:
 					buff += ch
-
-

@@ -31,7 +31,7 @@ class TestImportParser(unittest.TestCase):
 			Token("*"), Token("other", "2"), Token("identifier", "something"),
 			Token("other", "="), Token("other", "["), Token("other", "\""),
 			Token("identifier", "hello"), Token("other", "\""), Token("other", "]")
-			# TODO: add osme invalid stuff in here
+			# TODO: add some invalid stuff in here
 		]
 		self.invalidImportTokens = [
 			Token("from"), Token("identifier", "g"), Token("import"), Token("identifier", "dummy"), Token(","), Token("*"),
@@ -93,7 +93,7 @@ class TestImportParser(unittest.TestCase):
 		# Test with valid imports
 		self.assertEqual(self.parser.parse(self.validImportTokens), self.foundImports)
 
-	"""def test_parseDottedIdentifier(self):
+	def test_parseDottedIdentifier(self):
 		invalidIdentifierTokens1 = [ Token("other", "(") ]
 		invalidIdentifierTokens2 = [ Token(".") ]
 		invalidIdentifierTokens3 = [ Token("identifier", "invalid"), Token(".") ]
@@ -228,7 +228,8 @@ class TestImportParser(unittest.TestCase):
 		self.assertEqual(self.parser.parseImportedObjects(), ["one.fifty", "two", "three.eighty", "four"])
 		self.assertEqual(self.parser.index, 11)
 		self.parser.clear()	
-"""
+
+
 	def test_parseFrom(self):
 		pass
 		# TODO
