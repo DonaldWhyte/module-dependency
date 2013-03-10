@@ -1,5 +1,8 @@
-"""Contains extraction class with is used to identify dependencies in Python source code."""
+"""Contains functionalty to identify dependencies in Python source code and
+filter external and standard library dependencies."""
 
+import os.path
+import re
 from collections import Iterable
 
 from fileprocessor.extractors import TextExtractor
@@ -138,3 +141,84 @@ class ModuleDependencyExtractor(TextExtractor):
 			return self.applyWhitelist(foundDepdendencies)
 		else:
 			return foundDepdendencies
+
+class WhitelistGenerator:
+
+	def getProjectRoot(self, projectDirectory):
+		"""Return name of root project package using the project's directory.
+
+		Arguments:
+		projectDirectory -- *Absolute* path to the project which
+							stores source code being scanned.
+
+		"""
+		if len(projectDirectory) == 0:
+			raise ValueError("Path to project is empty")
+		# Split directory into path components
+		components = os.path.split(projectDirectory)
+		# Check if path is a root
+		if len(components) == 2 and components[1] == "":
+			return ""
+		# If not root, just return last path component
+		else:
+			return components[-1]
+
+	def getPackageName(self, filename):
+		"""Convert filename to Python package/module name.
+
+		Arguments:
+		filename -- Filename of package/module to generate name of.
+					Note that this must be *relative* to the *root*
+					of the project.
+
+		"""
+		if len(filename) == 0:
+			raise ValueError("Filename of package or module is empty")
+		extension = os.path.splitext(filename)[1]
+		if len(extension) > 0 and extension != ".py":
+			raise ValueError("Filename must point to a valid Python file with the extension '.py' or a directory")
+
+		directory, filename = os.path.split(filename)	
+		# Construct package name
+		packageName = ""
+		if len(directory) > 0:
+			# Replace path separators with "."
+			packageName += re.sub(r"(\\|/)", ".", directory)
+		if filename != "__init__.py" and filename != "__main__.py":
+			if len(packageName) > 0:
+				packageName += "."
+			# Remove extension from filename
+			packageName += os.path.splitext(filename)[0]
+		return packageName
+
+	def generate(self, projectDirectory):
+		"""Generate a list of all packages/modules.
+
+		projectDirectory -- *Absolute* path to the project whose
+							whitelist we need to generate.
+
+		"""
+		if not os.path.isdir(projectDirectory):
+			raise IOError("Directory '{}' does not exist".format(projectDirectory))
+
+		# Pre-compute root package using project directory
+		rootPackage = self.getProjectRoot(projectDirectory)
+
+		whitelist = []
+		for root, directories, filenames in os.walk(projectDirectory):
+			for name in (directories + filenames):
+				# Make sure that the root directory (of current directories/files)
+				# and the project directory use the same path separator
+				sanitisedRoot = re.sub(r"(\\|/)", os.sep.replace("\\", "\\\\"), root)
+				partToRemove = re.sub(r"(\\|/)", os.sep.replace("\\", "\\\\"), projectDirectory)
+				# Remove project directory from the root directory, as we only care
+				# aobut the file's RELATIVE position in the project
+				trimmedRoot = sanitisedRoot[len(partToRemove) + 1:]
+				# Create the full RELATIVE path to the directory/file by combining
+				# the directory the current file is contained with the name
+				# of it the file itself
+				name = os.path.join(trimmedRoot, name)
+				# Construct package name for it and then add it to the whitelist
+				packageName = "{}.{}".format(rootPackage, self.getPackageName(name))
+				whitelist.append(packageName)
+		return whitelist
