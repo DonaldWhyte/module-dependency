@@ -2,9 +2,11 @@ import unittest
 import sys
 import os
 sys.path.append(os.environ.get("PROJECT_ROOT_DIRECTORY", "."))
+import shutil
 
-from moduledependency.dependency_extractor import ModuleDependencyExtractor
+from moduledependency.dependency_extractor import ModuleDependencyExtractor, WhitelistGenerator
 from moduledependency.parser import ParsedImport
+
 
 class TestModuleDependencyExtractor(unittest.TestCase):
 
@@ -141,3 +143,90 @@ class TestModuleDependencyExtractor(unittest.TestCase):
 			set(EXPECTED_WITHOUT_WHITELIST)) # should have blocked modules in too!!!
 		self.assertEqual(self.extractorWithWhitelist.extract("files/some_dependencies.py"),
 			set(EXPECTED_WITH_WHITELIST))
+
+
+class TestWhitelistGenerator(unittest.TestCase):
+
+	def createFile(self, filename):
+		"""Create empty text file at given path."""
+		with open(filename, "r") as f:
+			f.write("")
+
+	def setUp(self):
+		self.whitelistGenerator = WhitelistGenerator()
+		# Create mock files for testing
+		try:
+			os.mkdir(".test_whitelist_generator")
+			os.mkdir(".test_whitelist_generator/empty")
+			os.mkdir(".test_whitelist_generator/flat")
+			self.createFile(".test_whitelist_generator/flat/m1.py")
+			self.createFile(".test_whitelist_generator/flat/m2.py")
+			self.createFile(".test_whitelist_generator/flat/m3.py")
+			os.mkdir(".test_whitelist_generator/nested")
+			self.createFile(".test_whitelist_generator/nested/m1.py")
+			os.mkdir(".test_whitelist_generator/nested/a")
+			os.mkdir(".test_whitelist_generator/nested/a/b")
+			self.createFile(".test_whitelist_generator/nested/a/b/m2.py")
+			self.createFile(".test_whitelist_generator/nested/a/b/m3.py")
+			os.mkdir(".test_whitelist_generator/nested/c")
+			self.createFile(".test_whitelist_generator/nested/c/m4.py")
+			self.createFile(".test_whitelist_generator/nested/c/m5.py")
+		except:
+			if os.path.isdir(".test_whitelist_generator"):
+				shutil.rmtree(".test_whitelist_generator")
+
+	def tearDown(self):
+		# Make sure test files are deleted
+		if os.path.isdir(".test_whitelist_generator"):
+			shutil.rmtree(".test_whitelist_generator")
+
+	def test_getProjectRoot(self):
+		# Test empty path
+		with self.assertRaises(ValueError):
+			self.whitelistGenerator.getProjectRoot("")
+		# Test root path
+		self.assertEqual(self.whitelistGenerator.getProjectRoot("/"), "")
+		self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\"), "")
+		# Test valid paths
+		self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt/python"), "python")
+		self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt"), "opt")
+		self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System\\Win32"), "Win32")
+		self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System"), "System")
+
+	def test_getPackageName(self):
+		# Test empty path
+		with self.assertRaises(ValueError):
+			self.whitelistGenerator.getProjectRoot("")
+		# Test invalid paths (not correct format)
+		with self.assertRaises(ValueError):
+			self.importResolver.getPackageName("  - -43-5-")
+		with self.assertRaises(ValueError):
+			self.importResolver.getPackageName("some_path#here#file.py")
+		with self.assertRaises(ValueError):
+			self.importResolver.getPackageName("  - -43-5-")
+		# Test with invalid extension
+		with self.assertRaises(ValueError):
+			self.importResolver.getPackageName("package/test.txt")
+		# Test valid paths
+		self.assertEqual(self.whitelistGenerator.getPackageName("_init__.py"), "")
+		self.assertEqual(self.whitelistGenerator.getPackageName("__main__.py"), "")
+		self.assertEqual(self.whitelistGenerator.getPackageName("test.py"), "test")
+		self.assertEqual(self.whitelistGenerator.getPackageName("package"), "package")
+		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage"), "package.subpackage")
+		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage/__init__.py"), "package.subpackage")
+		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage/__main__.py"), "package.subpackage")
+		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage/submodule.py"), "pacakge.subpackage.submodule")
+
+	def test_generate(self):
+		# Test with non-existent directory
+		with self.assertRaises(IOError):
+			self.whitelistGenerator.generate("__DIRECTORY_THAT_DOES_NOT_EXIST__")
+		# Test with empty directory
+		self.assertEqual( self.whitelistGenerator.generate(".test_whitelist_generator/empty"), [] )
+		# Test with flat directory
+		self.assertEqual( self.whitelistGenerator.generate(".test_whitelist_generator/flat"),
+			set([ "flat.m1", "flat.m2", "flat.m3" ]) )
+		# Test with nested directory
+		self.assertEqual( self.whitelistGenerator.generate(".test_whitelist_generator/nested"),
+			set([ "nested.a", "nested.c", "nested.a.b", "nested.m1", "nested.a.b.m2",
+				  "nested.a.b.m3", "nested.c.m4", "nested.c.m5" ]) )
