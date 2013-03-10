@@ -1,16 +1,43 @@
-# TODO: add docstrings to this
+"""Contains functionality for parsing tokens to identify module imports and dependencies."""
+#TODO: docstring
+
 import hashlib
 
 
 class ParseError(ValueError):
 
+	"""Exception class raised if an error in parsing occurs."""
+
 	def __init__(self, *args):
+		"""Construct instance of ParseError.
+
+		Arguments:
+		args -- Any arguments that can be passed to ValueError
+				can be provided.
+
+		"""
 		super().__init__(*args)
 
 
 class ParsedImport:
 
+	"""TODO"""
+
 	def __init__(self, moduleName, relative):
+		"""Construct instance of ParsedImport.
+
+		Arguments:
+		moduleName -- name of the module/identifier being imported
+					  Packages and modules should be separated with
+					  ".". "." should also be at the start of the
+					  name ONLY IF the import is relative with no
+					  root package (e.g. "from . import x" is ".x"
+					  but "from .y import x" is "y.x").
+		relative -- Boolean flag indicating if the import is relative
+					to the importing module's location or if it's
+					an absolute import.
+
+		"""
 		self.moduleName = moduleName
 		self.relative = relative
 

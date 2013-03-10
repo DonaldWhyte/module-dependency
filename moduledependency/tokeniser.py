@@ -1,4 +1,5 @@
-# TODO: add docstrings to this
+"""Contains functionality for tokenising Python source code."""
+
 
 import re
 
@@ -95,11 +96,17 @@ class Tokeniser:
 			return None
 
 	def nextChar(self):
-		"""Increments character index and returns the new character."""
+		"""Increment character index and returns the new character."""
 		self.index += 1
 		return self.currentChar()
 
 	def tokenise(self, source):
+		"""Return list of Token objects by tokensing Python source code.
+
+		Arguments:
+		source -- Python source code to tokenise
+
+		"""
 		if not isinstance(source, str):
 			raise TypeError("Source to tokenise must be a string")
 

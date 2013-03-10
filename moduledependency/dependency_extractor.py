@@ -1,4 +1,4 @@
-# TODO: add docstrings
+"""Contains extraction class with is used to identify dependencies in Python source code."""
 
 from collections import Iterable
 
@@ -9,6 +9,15 @@ from .parser import ImportParser, ParsedImport
 class ModuleDependencyExtractor(TextExtractor):
 
 	def __init__(self, whitelist = None):
+		"""Create new instance of ModuleDependencyExtractor.
+
+		Keyword arguments:
+		whitelist -- List of strings denoting the names of packages
+					 or modules that are allowed. If not provided,
+					 no whitelist will be used to filter results.
+					 (default: None)
+
+		"""
 		if whitelist != None and not isinstance(whitelist, Iterable):
 			raise TypeError("Whitelist must be an iterable collection of strings")
 		self.whitelist = whitelist				
@@ -17,6 +26,7 @@ class ModuleDependencyExtractor(TextExtractor):
 		self.parser = ImportParser()
 
 	def usingWhitelist(self):
+		"""Return True if this extractor is using a whitelist to filter depedencies."""
 		return (self.whitelist != None)
 
 	def belongsTo(self, package, module):
@@ -103,6 +113,12 @@ class ModuleDependencyExtractor(TextExtractor):
 		return False
 
 	def applyWhitelist(self, dependencies):
+		"""Filter dependencies not in extractor's whitelist and return filtered dependencies
+
+		Arguments:
+		dependencies -- Set containing the dependencies to filter
+
+		"""
 		# Do nothing if we're not even using a whitelist
 		if not self.usingWhitelist:
 			return
@@ -110,6 +126,12 @@ class ModuleDependencyExtractor(TextExtractor):
 		return set(allowedDependencies)
 
 	def extractFromString(self, data):
+		"""Take Python source code as text and return the code's set of dependencies.
+
+		Arguments:
+		data -- String containing Python source code to analyse
+
+		"""
 		tokens = self.tokeniser.tokenise(data)
 		foundDepdendencies = self.parser.parse(tokens)
 		if self.usingWhitelist():
