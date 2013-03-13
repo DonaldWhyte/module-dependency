@@ -4,6 +4,7 @@ import os
 sys.path.append(os.environ.get("PROJECT_ROOT_DIRECTORY", "."))
 
 from moduledependency.import_resolver import ImportResolver
+from moduledependency.parser import ParsedImport
 
 
 class TestImportResolver(unittest.TestCase):
@@ -37,16 +38,14 @@ class TestImportResolver(unittest.TestCase):
 		with self.assertRaises(ValueError):
 			self.importResolver.getPackageName("  - -43-5-")
 		with self.assertRaises(ValueError):
-			self.importResolver.getPackageName("some_path#here#file.py")
-		with self.assertRaises(ValueError):
-			self.importResolver.getPackageName("  - -43-5-")
+			self.importResolver.getPackageName("__I*930384095 0d-")
 		# Test paths not in assigned root directory
 		for path in INVALID_PATHS:
 			with self.assertRaises(ValueError):
 				self.importResolver.getPackageName(path)
 		# Test valid paths (with different path separators)
 		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package"), "package")
-		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/module.py"), "package")
+		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/module.py"), "package.module")
 		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/module.txt"), "package.module")
 		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/subpackage/"), "package.subpackage")
 		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/subpackage/module.py"), "package.subpackage.module")
@@ -66,12 +65,12 @@ class TestImportResolver(unittest.TestCase):
 		with self.assertRaises(ValueError):
 			self.importResolver.resolveImport( "", ParsedImport("test", False) )
 		# Test with relative import where there is NO root
-		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/another.py", ParsedImport("test", True)), "test" )
+		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/another.py", ParsedImport(".test", True)), "test" )
 		# Test with valid relative imports where there is a root
 		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/package/something.py",
-			ParsedImport("test", True)), "package.test" )
+			ParsedImport(".test", True)), "package.test" )
 		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/package/__init__.py",
-			ParsedImport("test", True)), "package.test" )
+			ParsedImport(".test", True)), "package.test" )
 		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/package/subpackage/files.py",
 			ParsedImport("something.nested", True)), "package.subpackage.something.nested" )
 

@@ -1,9 +1,10 @@
 import unittest
 import sys
 import os
-sys.path.append(os.environ.get("PROJECT_ROOT_DIRECTORY", "."))
+import platform
 import shutil
 
+sys.path.append(os.environ.get("PROJECT_ROOT_DIRECTORY", "."))
 from moduledependency.dependency_extractor import ModuleDependencyExtractor, WhitelistGenerator
 from moduledependency.parser import ParsedImport
 
@@ -186,12 +187,17 @@ class TestWhitelistGenerator(unittest.TestCase):
 		with self.assertRaises(ValueError):
 			self.whitelistGenerator.getProjectRoot("")
 		# Test root path
-		self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\"), "")
+		if platform.system() == "Windows":
+			self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\"), "")
+		elif platform.system() == "Unix" or platform.system() == "Linux":
+			self.assertEqual(self.whitelistGenerator.getProjectRoot("/"), "")
 		# Test valid paths
-		self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt/python"), "python")
-		self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt"), "opt")
-		self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System\\Win32"), "Win32")
-		self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System"), "System")
+		if platform.system() == "Windows":
+			self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System\\Win32"), "Win32")
+			self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System"), "System")		
+		elif platform.system() == "Unix" or platform.system() == "Linux":
+			self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt/python"), "python")
+			self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt"), "opt")
 
 	def test_getPackageName(self):
 		# Test empty path
