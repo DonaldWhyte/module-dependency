@@ -77,9 +77,11 @@ class TestImportResolver(unittest.TestCase):
 	def test_resolveImports(self):
 		INVALID_INPUT_DEPENDENCIES = {
 			"/some/root/dir/package" : set(),
-			"/not/in/assigned/root.py" : set([ParsedImport("test", True)])
+			"/not/in/assigned/root.py" : set()
 		}
 		INPUT_DEPENDENCIES = {
+			"/some/root/dir/__init__.py" : set([]),
+			"/some/root/dir/setup.py" : set([ParsedImport("distutils", False)]),
 			"/some/root/dir/package" : set([
 				ParsedImport("sys", False),
 				ParsedImport("os.path", False)
@@ -100,6 +102,8 @@ class TestImportResolver(unittest.TestCase):
 			])
 		}
 		RESOLVED_DEPENDENCIES = {
+			"" : set(),
+			"setup" : set(["distutils"]),
 			"package" : set(["sys", "os.path"]),
 			"package.module" : set(["haslib.sha1", "package.test", "package.something.nested.even_more.module"]),
 			"package.subpackage" : set(["package.subpackage.hello"]),

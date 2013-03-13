@@ -37,7 +37,7 @@ class ImportResolver:
 		# Remove root directory from the package directory
 		sanitisedPath = sanitisedPath[len(self.rootDirectory) + 1:]
 		if len(sanitisedPath) == 0:
-			raise ValueError("Root project directory '{}' was given - this is" \
+			raise ValueError("Root project directory '{}' was given - this is " \
 				"not a valid package in the project".format(sanitisedPath))
 		# Remove extension
 		sanitisedPath = os.path.splitext(sanitisedPath)[0]
