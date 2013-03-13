@@ -86,9 +86,7 @@ class TestImportResolver(unittest.TestCase):
 			]),
 			"/some/root/dir/package/module.py" : set([
 				ParsedImport("haslib.sha1", False),
-				ParsedImport("test", True)
-			]),
-			"/some/root/dir/package/module.txt" : set([
+				ParsedImport("test", True),
 				ParsedImport("something.nested.even_more.module", True)
 			]),
 			"/some/root/dir/package/subpackage/__init__.py" : set([
@@ -102,11 +100,10 @@ class TestImportResolver(unittest.TestCase):
 			])
 		}
 		RESOLVED_DEPENDENCIES = {
-			"/some/root/dir/package" : set(["sys", "os.path"]),
-			"/some/root/dir/package/module.py" : set(["haslib.sha1", "package.test"]),
-			"/some/root/dir/package/module.txt" : set(["package.something.nested.even_more.module"]),
-			"/some/root/dir/package/subpackage/__init__.py" : set(["package.subpackage.hello"]),
-			"/some/root/dir/package/subpackage/module.py" : set([
+			"package" : set(["sys", "os.path"]),
+			"package.module" : set(["haslib.sha1", "package.test", "package.something.nested.even_more.module"]),
+			"package.subpackage" : set(["package.subpackage.hello"]),
+			"package.subpackage.module" : set([
 				"package.subpackage.hello.byebye", "package.subpackage.y.x",
 				"package.subpackage.z", "z"])
 		}

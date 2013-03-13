@@ -96,7 +96,10 @@ class ImportResolver:
 	def resolveImports(self, dependencies):
 		"""Resolves a collection of imports to their full package names.
 
-		ParsedImport 
+		Note that this does not just resolve imports of modules, but 
+		also transforms the absolute paths to modules to their full
+		module names.
+
 		If dependencies is not a dictionary, then a TypeError is raised.
 
 		Arguments:
@@ -112,11 +115,20 @@ class ImportResolver:
 
 		resolvedDependencies = {}
 		for modulePath, moduleDepenendencies in dependencies.items():
+			# Compute final package name of module
+			moduleName = self.getPackageName(modulePath)
+			# Ensure that __init__ is removed to make it a PACKAGE
+			if moduleName.endswith("__init__"):
+				moduleName = moduleName[:-8]
+				if moduleName.endswith("."):
+					moduleName = moduleName[:-1]
+			# Resolve all absolute and relative dependencies
 			resolved = set()
 			for dep in moduleDepenendencies:
 				if dep.isRelative():
 					resolved.add( self.resolveImport(modulePath, dep) )
 				else:
 					resolved.add( dep.moduleName )
-			resolvedDependencies[modulePath] = resolved
+			# Add resolve module and its dependencies to new dictionary
+			resolvedDependencies[moduleName] = resolved
 		return resolvedDependencies
