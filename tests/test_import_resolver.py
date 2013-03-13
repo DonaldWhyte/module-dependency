@@ -50,8 +50,8 @@ class TestImportResolver(unittest.TestCase):
 		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/subpackage/"), "package.subpackage")
 		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/subpackage/module.py"), "package.subpackage.module")
 		# Test with __main__.py and __init__.py files
-		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/__init__.py"), "package")
-		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/__main__.py"), "package")
+		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/__init__.py"), "package.__init__")
+		self.assertEqual(self.importResolver.getPackageName("/some/root/dir/package/__main__.py"), "package.__main__")
 
 	def test_resolveImport(self):
 		# Test with incorrect types
@@ -77,7 +77,7 @@ class TestImportResolver(unittest.TestCase):
 	def test_resolveImports(self):
 		INVALID_INPUT_DEPENDENCIES = {
 			"/some/root/dir/package" : set(),
-			"/not/in/assigned/root.py" : set()
+			"/not/in/assigned/root.py" : set([ParsedImport("test", True)])
 		}
 		INPUT_DEPENDENCIES = {
 			"/some/root/dir/package" : set([
@@ -95,7 +95,10 @@ class TestImportResolver(unittest.TestCase):
 				ParsedImport(".hello", True)
 			]),
 			"/some/root/dir/package/subpackage/module.py" : set([
-				ParsedImport(".hello.byebye", True)
+				ParsedImport("hello.byebye", True),
+				ParsedImport("y.x", True),
+				ParsedImport(".z", True),
+				ParsedImport("z", False)
 			])
 		}
 		RESOLVED_DEPENDENCIES = {
@@ -103,7 +106,9 @@ class TestImportResolver(unittest.TestCase):
 			"/some/root/dir/package/module.py" : set(["haslib.sha1", "package.test"]),
 			"/some/root/dir/package/module.txt" : set(["package.something.nested.even_more.module"]),
 			"/some/root/dir/package/subpackage/__init__.py" : set(["package.subpackage.hello"]),
-			"/some/root/dir/package/subpackage/module.py" : set(["package.subpackage.hello.byebye", "package.subpackage.y.x"])
+			"/some/root/dir/package/subpackage/module.py" : set([
+				"package.subpackage.hello.byebye", "package.subpackage.y.x",
+				"package.subpackage.z", "z"])
 		}
 
 		# Test with non-iterable

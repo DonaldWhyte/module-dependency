@@ -6,7 +6,7 @@ from .parser import ParsedImport
 
 class ImportResolver:
 
-	"""TODO"""
+	"""Class which resolves relative imports into full, absolute imports."""
 
 	def __init__(self, rootDirectory):
 		"""Construct instance of ImportResolver.
@@ -41,10 +41,6 @@ class ImportResolver:
 				"not a valid package in the project".format(sanitisedPath))
 		# Remove extension
 		sanitisedPath = os.path.splitext(sanitisedPath)[0]
-		# If path ends with __init__ or __main__, remove them to make
-		# to make the name correspond to just that package
-		if sanitisedPath.endswith("__init__") or sanitisedPath.endswith("__main__"):
-			sanitisedPath = sanitisedPath[:-8]
 		# Ensure there is no trailing separators if path is directory
 		if sanitisedPath.endswith("/"):
 			sanitisedPath = sanitisedPath[:-1]
@@ -52,7 +48,10 @@ class ImportResolver:
 		return sanitisedPath.replace("/", ".")
 
 	def resolveImport(self, dependantModulePath, importedModule):
-		"""TODO
+		"""Resolve relative import to full package name (relaitve to project root).
+
+		This is achieved using the project root directory and
+		dependant module given as a directory.
 
 		If dependantModulePath is not a string, a TypeError is raised.
 		If importedModule is not a relative import, a ValueError is raised.
@@ -72,16 +71,52 @@ class ImportResolver:
 
 		# Get full package name of dependant module (based on project root)
 		dependantModule = self.getPackageName(dependantModulePath)
-		# Remove last component from name (as that's the module that has imported something)
-		packageComponents = dependantModule.split(".")
-		dependantModule = ".".join( packageComponents[:-1] )
+		# If the module is a package __init__.py or __main__.py file, then
+		# those filenames are removed from the final dependant module name
+		if dependantModule.endswith("__init__") or dependantModule.endswith("__main__"):
+			dependantModule = dependantModule[:-8]
+			# Ensure there is no trailing dot
+			if dependantModule.endswith("."):
+				dependantModule = dependantModule[:-1]
+		else:
+			# Remove last component from name (as that's the module that has imported something)
+			packageComponents = dependantModule.split(".")
+			dependantModule = ".".join( packageComponents[:-1] )
 		# Ensure there is no preceding dot in imported module name
 		if importedModule.moduleName.startswith("."):
 			name = importedModule.moduleName[1:]
 		else:
 			name = importedModule.moduleName
-			
+
 		if len(dependantModule) == 0:
 			return name
 		else:
 			return "{}.{}".format(dependantModule, name)
+
+	def resolveImports(self, dependencies):
+		"""Resolves a collection of imports to their full package names.
+
+		ParsedImport 
+		If dependencies is not a dictionary, then a TypeError is raised.
+
+		Arguments:
+		dependencies -- Dictionary where the keys are the absolute
+					   paths to Python modules and the values are
+					   sets containing ParsedImport objects that
+					   correspond to dependencies of the module
+					   pointed to by the associated path.
+
+		"""
+		if not isinstance(dependencies, dict):
+			raise TypeError("Module dependencies must be a dictionary")
+
+		resolvedDependencies = {}
+		for modulePath, moduleDepenendencies in dependencies.items():
+			resolved = set()
+			for dep in moduleDepenendencies:
+				if dep.isRelative():
+					resolved.add( self.resolveImport(modulePath, dep) )
+				else:
+					resolved.add( dep.moduleName )
+			resolvedDependencies[modulePath] = resolved
+		return resolvedDependencies
