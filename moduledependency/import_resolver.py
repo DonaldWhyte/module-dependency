@@ -115,7 +115,7 @@ class ImportResolver:
 
 		resolvedDependencies = {}
 		for modulePath, moduleDepenendencies in dependencies.items():
-			# Compute final package name of module
+			# Compute final package name of module.
 			moduleName = self.getPackageName(modulePath)
 			# Ensure that __init__ is removed to make it a PACKAGE
 			if moduleName.endswith("__init__"):

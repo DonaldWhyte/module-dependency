@@ -97,19 +97,38 @@ class Executor:
 		"""
 		if not os.path.isdir(projectDirectory):
 			raise IOError("'{}' is not a valid directory".format(projectDirectory))
+		# Important to make the project directory an absolute path
+		projectDirectory = os.path.abspath(projectDirectory)
 
 		# Generate list of files to consider in project directory
+		# and then remove modules which aren't in the list
 		whitelistGenerator = WhitelistGenerator()
 		whitelist = whitelistGenerator.generate(projectDirectory)
 		# Extract dependencies for the project directory
 		searcher = FileSearcher(True)
-		filterers = [ ExtensionFilterer(["py"]), IncludeListFilterer(whitelist) ]
-		extractor = ModuleDependencyExtractor()
+		filterers = [ ExtensionFilterer(["py"]) ]
+		extractor = ModuleDependencyExtractor(whitelist)
 		processor = FileProcessor(searcher, filterers, extractor)
 		dependencies = processor.process(projectDirectory)
 		# Resolve relative imports
 		resolver = ImportResolver(projectDirectory)
-		return resolver.resolve(dependencies)
+		print(dependencies)
+		dependencies = resolver.resolveImports(dependencies)
+		print(dependencies)
+
+		# Prepend project directory name to all the keys. We can do
+		# this since we KNOW that all the files are contained within
+		# that project root directory.
+		projectDependencies = {}
+		rootPackage = whitelistGenerator.getProjectRoot(projectDirectory)
+		for key, value in dependencies.items():
+			if len(key) > 0:
+				newKey = "{}.{}".format(rootPackage, key)
+			else:
+				newKey = rootPackage
+			projectDependencies[newKey] = value		
+
+		return projectDependencies
 
 	def execute(self, projectDirectory):
 		"""Execute dependency search.

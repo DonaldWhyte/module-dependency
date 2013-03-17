@@ -218,7 +218,18 @@ class WhitelistGenerator:
 				# the directory the current file is contained with the name
 				# of it the file itself
 				name = os.path.join(trimmedRoot, name)
-				# Construct package name for it and then add it to the whitelist
-				packageName = "{}.{}".format(rootPackage, self.getPackageName(name))
+				# Get package name for the file being processed
+				packageName = None
+				try:
+					packageName = self.getPackageName(name)
+				# If invalid package name, we just ignore that module
+				except ValueError:
+					continue
+				# Add root package to the name and add it to the whitelist
+				if len(packageName) > 0:
+					packageName = "{}.{}".format(rootPackage, packageName)
+				else:
+					packageName = rootPackage
 				whitelist.append(packageName)
+
 		return whitelist
