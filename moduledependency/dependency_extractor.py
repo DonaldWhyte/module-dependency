@@ -166,7 +166,9 @@ class WhitelistGenerator:
 		if len(directory) > 0:
 			# Replace path separators with "."
 			packageName += re.sub(r"(\\|/)", ".", directory)
-		if filename != "__init__.py" and filename != "__main__.py":
+		# __init__ is not added  since that is the root of a package,
+		# but __main__ isn't
+		if filename != "__init__.py":
 			if len(packageName) > 0:
 				packageName += "."
 			# Remove extension from filename

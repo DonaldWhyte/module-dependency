@@ -128,5 +128,4 @@ class TestImportResolver(unittest.TestCase):
 		with self.assertRaises(ValueError):
 			self.importResolver.resolveImports(INVALID_INPUT_DEPENDENCIES)
 		# Test with filled dependency dicitonary
-		print(self.importResolver.resolveImports(INPUT_DEPENDENCIES))
 		self.assertEqual(self.importResolver.resolveImports(INPUT_DEPENDENCIES), RESOLVED_DEPENDENCIES)

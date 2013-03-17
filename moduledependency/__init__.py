@@ -113,11 +113,6 @@ class Executor:
 		# Resolve relative imports
 		resolver = ImportResolver(projectDirectory)
 		dependencies = resolver.resolveImports(dependencies)
-
-		print()
-		print(dependencies)
-		print()
-
 		# Prepend project directory name to all the keys. We can do
 		# this since we KNOW that all the files are contained within
 		# that project root directory.
@@ -125,14 +120,14 @@ class Executor:
 		for key, value in dependencies.items():
 			# Only add if the package name is in the whitelist
 			if key in whitelist:
-				# Use whitelist to filter any of the dependencies too
-				filteredList = [ x for x in value if x in whitelist ]
-				projectDependencies[key] = filteredList
-
-		print(projectDependencies)
+				# Use whitelist to filter any of the module's dependencies too
+				filteredSet = set()
+				for dep in value:
+					if dep in whitelist:
+						filteredSet.add(dep)
+				projectDependencies[key] = filteredSet
 
 		return projectDependencies
-
 
 	def execute(self, projectDirectory):
 		"""Execute dependency search.

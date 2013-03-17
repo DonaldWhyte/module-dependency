@@ -172,8 +172,7 @@ class TestWhitelistGenerator(unittest.TestCase):
 			os.mkdir(".test_whitelist_generator/nested/c")
 			self.createFile(".test_whitelist_generator/nested/c/m4.py")
 			self.createFile(".test_whitelist_generator/nested/c/m5.py")
-		except BaseException as e:
-			print(e)
+		except:
 			if os.path.isdir(".test_whitelist_generator"):
 				shutil.rmtree(".test_whitelist_generator")
 
@@ -191,12 +190,12 @@ class TestWhitelistGenerator(unittest.TestCase):
 			self.whitelistGenerator.getPackageName("package/test.txt")
 		# Test valid paths
 		self.assertEqual(self.whitelistGenerator.getPackageName("__init__.py"), "")
-		self.assertEqual(self.whitelistGenerator.getPackageName("__main__.py"), "")
+		self.assertEqual(self.whitelistGenerator.getPackageName("__main__.py"), "__main__")
 		self.assertEqual(self.whitelistGenerator.getPackageName("test.py"), "test")
 		self.assertEqual(self.whitelistGenerator.getPackageName("package"), "package")
 		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage"), "package.subpackage")
 		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage/__init__.py"), "package.subpackage")
-		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage/__main__.py"), "package.subpackage")
+		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage/__main__.py"), "package.subpackage.__main__")
 		self.assertEqual(self.whitelistGenerator.getPackageName("package/subpackage/submodule.py"), "package.subpackage.submodule")
 
 	def test_generate(self):

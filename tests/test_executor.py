@@ -30,7 +30,7 @@ class TestExecutor(unittest.TestCase):
 	EXPECTED_DEPENDENCIES = {
 		"project" : set(),
 		"project.__main__" : set(),
-		"project.a" : set(),
+		"project.a" : set(["project.a", "project.pack"]),
 		"project.pack.subpack2" : set(),
 		"project.pack.subpack2.d" : set(),
 		"project.pack.subpack2.subsubpack.c" : set(),
@@ -40,7 +40,7 @@ class TestExecutor(unittest.TestCase):
 
 	EXPECTED_FILE_CONTENTS = """project = [ ]
 project.__main__ = [ ]
-project.a = [ ]
+project.a = [ project.a project.pack ]
 project.pack.subpack2 = [ ]
 project.pack.subpack2.d = [ ]
 project.pack.subpack2.subsubpack.c = [ ]
