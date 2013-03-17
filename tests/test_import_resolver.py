@@ -79,6 +79,14 @@ class TestImportResolver(unittest.TestCase):
 			ParsedImport(".test", True)), "dir.package.test" )
 		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/package/subpackage/files.py",
 			ParsedImport("something.nested", True)), "dir.package.subpackage.something.nested" )
+		# Test out of bounds upper level import
+		with self.assertRaises(ValueError):
+			self.importResolver.resolveImport("/some/root/dir/package/test.py", ParsedImport("...a", True))
+		# Test valid upper level imports
+		self.assertEqual(self.importResolver.resolveImport("/some/root/dir/package/test.py",
+			ParsedImport("..a", True)), "dir.a")
+		self.assertEqual(self.importResolver.resolveImport("/some/root/dir/package/test/test2/test3/nested.py",
+			ParsedImport("....fromnested.foobar", True)), "dir.package.fromnested.foobar")
 
 	def test_resolveImports(self):
 		INVALID_INPUT_DEPENDENCIES = {

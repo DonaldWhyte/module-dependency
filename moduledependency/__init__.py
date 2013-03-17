@@ -129,7 +129,9 @@ class Executor:
 
 		from pprint import PrettyPrinter
 		printer = PrettyPrinter()
+		print()
 		printer.pprint(projectDependencies)
+		print()
 
 		return projectDependencies
 

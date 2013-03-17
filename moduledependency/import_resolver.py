@@ -9,6 +9,8 @@ class ImportResolver:
 
 	"""Class which resolves relative imports into full, absolute imports."""
 
+	PRECEDING_DOT_REGEX = re.compile("^(\.+).*$")
+
 	def __init__(self, rootDirectory):
 		"""Construct instance of ImportResolver.
 
@@ -85,9 +87,11 @@ class ImportResolver:
 
 		# Get full package name of dependant module (based on project root)
 		dependantModule = self.getPackageName(dependantModulePath)
-		# If the module is a package __init__.py or __main__.py file, then
-		# those filenames are removed from the final dependant module name
-		if dependantModule.endswith("__init__") or dependantModule.endswith("__main__"):
+		# If the module is a package __init__.py file, then those filenames are
+		# removed from the final dependant module name
+		wasInit = False
+		if dependantModule.endswith("__init__"):
+			wasInit = True
 			dependantModule = dependantModule[:-8]
 			# Ensure there is no trailing dot
 			if dependantModule.endswith("."):
@@ -96,11 +100,35 @@ class ImportResolver:
 			# Remove last component from name (as that's the module that has imported something)
 			packageComponents = dependantModule.split(".")
 			dependantModule = ".".join( packageComponents[:-1] )
-		# Ensure there is no preceding dot in imported module name
-		if importedModule.moduleName.startswith("."):
-			name = importedModule.moduleName[1:]
+
+		name = importedModule.moduleName
+
+		# Extract preceding dots from module name
+		match = self.PRECEDING_DOT_REGEX.match(importedModule.moduleName)
+		if match:
+			precedingDots = match.group(1)
 		else:
-			name = importedModule.moduleName
+			precedingDots = ""
+		# If there are two or more dots, then a package from an upper
+		# upper level is desired
+		if len(precedingDots) >= 2:
+			# Compute number of levels to go up package hierarchy
+			levelsToGoUp = len(precedingDots) - 1
+			dependantModuleComponents = dependantModule.split(".")
+			# Check if it's possible to go up enough levels
+			if len(dependantModuleComponents) < levelsToGoUp: 
+				raise ValueError("Could not resolve import '{}' from '{}' - "
+					"upper-level import out of project bounds".format(dependantModule, importedModule))
+			# Remove preceding dots from module name
+			name = name[len(precedingDots):]				
+			# Reconstruct dependant module name by removing as many
+			# components at the end as there are dots
+			dependantModule = ".".join( dependantModuleComponents[:-levelsToGoUp] )
+		# If there is a SINGLE preceding dot in the imported module,
+		# then remove it since it's a relative import at the CURRENT
+		# level of the package directory
+		elif len(precedingDots) == 1:
+			name = importedModule.moduleName[1:]
 
 		if len(dependantModule) == 0:
 			return self.addRootToPackage(name)

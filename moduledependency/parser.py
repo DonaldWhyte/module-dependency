@@ -165,7 +165,7 @@ class ImportParser:
 
 		# Find the ROOT module name if root is not "."
 		if searchForRootModule:
-			rootModuleName = self.parseDottedIdentifier()
+			rootModuleName = self.parseDottedIdentifier(True)
 			if not rootModuleName:
 				raise ParseError("Module identifier should follow a 'from' keyword")
 		else:
@@ -190,7 +190,7 @@ class ImportParser:
 		if "*" in importedObjects:
 			self.addImport(rootModuleName, isRelative)
 		# Add a found module for each of the imported objects
-		else:	
+		else:
 			for obj in importedObjects:
 				fullModuleName = "{}.{}".format(rootModuleName, obj)
 				self.addImport(fullModuleName, isRelative)
@@ -209,13 +209,21 @@ class ImportParser:
 
 		return importedObjects
 
-	def parseDottedIdentifier(self):
+	def parseDottedIdentifier(self, allowStartingDots = False):
 		"""Parse a series of identifiers separated with the "." operator.
 
 		Returns this series of identifiers as a string. If no valid
 		identifier could be found immediately, then None is returned.
 
+		Keyword arguments:
+		allowStartingDots -- If set to True, then a ParseError will NOT
+							be raised if the identifier starts with one
+							or more dot characters.
+
 		"""
+		# Stores complete dotted identifier
+		name = ""
+
 		token = self.currentToken()
 		if not token:
 			raise ParseError("Unexpected end of tokens")
@@ -224,12 +232,22 @@ class ImportParser:
 		elif token.type == "*":
 			self.nextToken()
 			return "*"
+		# If identifier starts with a dot character and it's allowed,
+		# go through all the dots and add them to the final name
+		elif token.type == "." and allowStartingDots:
+			while token and token.type == ".":
+				name += "."
+				token = self.nextToken()
+			# If end of token steam has already been reached, just
+			# return the parsed dots
+			if not token:
+				return name
 		# Also check if the first token is an identifier. A valid
 		# dootted identifier must START with an "identifier" token
 		elif token.type != "identifier":
 			raise ParseError("Dotted identifier must start with an identifier token")
 
-		name = ""
+		# Parse identifier
 		lookingForDot = False
 		while True:
 			if lookingForDot:

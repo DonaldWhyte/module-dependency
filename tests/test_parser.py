@@ -145,6 +145,34 @@ class TestImportParser(unittest.TestCase):
 		self.assertEqual(self.parser.parseDottedIdentifier(), "test.anotherTest")
 		self.assertEqual(self.parser.index, 3)
 		self.parser.clear()	
+		# Test exceptions will be raised if identifier starts with a dot or
+		# there are consecutive dots
+		self.parser.tokens = [ Token("."), Token("identifier", "test") ]
+		with self.assertRaises(ParseError):
+			self.parser.parseDottedIdentifier()
+		self.parser.clear()	
+		# Test an exception will NOT be raised if the allow flag is set
+		self.parser.tokens = [ Token("."), Token("identifier", "test"), Token("."), Token("identifier", "anotherTest") ]
+		self.assertEqual(self.parser.parseDottedIdentifier(True), ".test.anotherTest")
+		self.assertEqual(self.parser.index, 4)
+		self.parser.clear()	
+		self.parser.tokens = [ Token("."), Token("."), Token("identifier", "test") ]
+		self.assertEqual(self.parser.parseDottedIdentifier(True), "..test")
+		self.assertEqual(self.parser.index, 3)
+		self.parser.clear()
+		self.parser.tokens = [ Token(".") ]
+		self.assertEqual(self.parser.parseDottedIdentifier(True), ".")
+		self.assertEqual(self.parser.index, 1)
+		self.parser.clear()					
+		self.parser.tokens = [ Token("."), Token(".") ]
+		self.assertEqual(self.parser.parseDottedIdentifier(True), "..")
+		self.assertEqual(self.parser.index, 2)
+		self.parser.clear()	
+		self.parser.tokens = [ Token("."), Token("."), Token("identifier", "test"), Token("."), Token("identifier", "anotherTest") ]
+		self.assertEqual(self.parser.parseDottedIdentifier(True), "..test.anotherTest")
+		self.assertEqual(self.parser.index, 5)
+		self.parser.clear()			
+
 
 	def test_parseImport(self):
 		incorrectImportTokens1 = [ Token("import") ]
