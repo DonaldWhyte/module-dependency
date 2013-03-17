@@ -107,28 +107,32 @@ class Executor:
 		# Extract dependencies for the project directory
 		searcher = FileSearcher(True)
 		filterers = [ ExtensionFilterer(["py"]) ]
-		extractor = ModuleDependencyExtractor(whitelist)
+		extractor = ModuleDependencyExtractor()
 		processor = FileProcessor(searcher, filterers, extractor)
 		dependencies = processor.process(projectDirectory)
 		# Resolve relative imports
 		resolver = ImportResolver(projectDirectory)
-		print(dependencies)
 		dependencies = resolver.resolveImports(dependencies)
+
+		print()
 		print(dependencies)
+		print()
 
 		# Prepend project directory name to all the keys. We can do
 		# this since we KNOW that all the files are contained within
 		# that project root directory.
-		projectDependencies = {}
-		rootPackage = whitelistGenerator.getProjectRoot(projectDirectory)
+		projectDependencies = {} 
 		for key, value in dependencies.items():
-			if len(key) > 0:
-				newKey = "{}.{}".format(rootPackage, key)
-			else:
-				newKey = rootPackage
-			projectDependencies[newKey] = value		
+			# Only add if the package name is in the whitelist
+			if key in whitelist:
+				# Use whitelist to filter any of the dependencies too
+				filteredList = [ x for x in value if x in whitelist ]
+				projectDependencies[key] = filteredList
+
+		print(projectDependencies)
 
 		return projectDependencies
+
 
 	def execute(self, projectDirectory):
 		"""Execute dependency search.

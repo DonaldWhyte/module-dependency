@@ -8,6 +8,7 @@ from collections import Iterable
 from fileprocessor.extractors import TextExtractor
 from .tokeniser import Tokeniser
 from .parser import ImportParser, ParsedImport
+from . import util
 
 class ModuleDependencyExtractor(TextExtractor):
 
@@ -144,25 +145,6 @@ class ModuleDependencyExtractor(TextExtractor):
 
 class WhitelistGenerator:
 
-	def getProjectRoot(self, projectDirectory):
-		"""Return name of root project package using the project's directory.
-
-		Arguments:
-		projectDirectory -- *Absolute* path to the project which
-							stores source code being scanned.
-
-		"""
-		if len(projectDirectory) == 0:
-			raise ValueError("Path to project is empty")
-		# Split directory into path components
-		components = os.path.split(projectDirectory)
-		# Check if path is a root
-		if len(components) == 2 and components[1] == "":
-			return ""
-		# If not root, just return last path component
-		else:
-			return components[-1]
-
 	def getPackageName(self, filename):
 		"""Convert filename to Python package/module name.
 
@@ -202,7 +184,7 @@ class WhitelistGenerator:
 			raise IOError("Directory '{}' does not exist".format(projectDirectory))
 
 		# Pre-compute root package using project directory
-		rootPackage = self.getProjectRoot(projectDirectory)
+		rootPackage = util.getProjectRoot(projectDirectory)
 
 		whitelist = []
 		for root, directories, filenames in os.walk(projectDirectory):

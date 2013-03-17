@@ -20,6 +20,12 @@ class TestImportResolver(unittest.TestCase):
 		# additional tests here
 		pass
 
+	def test_addRootToPackage(self):
+		# Test with empty string for package (which would be root __init__ of project)
+		self.assertEqual(self.importResolver.addRootToPackage(""), "dir")
+		# Test with package name
+		self.assertEqual(self.importResolver.addRootToPackage("test"), "dir.test")
+
 	def test_getPackageName(self):
 		INVALID_PATHS = [
 			"/", "C:\\", "",
@@ -65,14 +71,14 @@ class TestImportResolver(unittest.TestCase):
 		with self.assertRaises(ValueError):
 			self.importResolver.resolveImport( "", ParsedImport("test", False) )
 		# Test with relative import where there is NO root
-		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/another.py", ParsedImport(".test", True)), "test" )
+		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/another.py", ParsedImport(".test", True)), "dir.test" )
 		# Test with valid relative imports where there is a root
 		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/package/something.py",
-			ParsedImport(".test", True)), "package.test" )
+			ParsedImport(".test", True)), "dir.package.test" )
 		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/package/__init__.py",
-			ParsedImport(".test", True)), "package.test" )
+			ParsedImport(".test", True)), "dir.package.test" )
 		self.assertEqual( self.importResolver.resolveImport("/some/root/dir/package/subpackage/files.py",
-			ParsedImport("something.nested", True)), "package.subpackage.something.nested" )
+			ParsedImport("something.nested", True)), "dir.package.subpackage.something.nested" )
 
 	def test_resolveImports(self):
 		INVALID_INPUT_DEPENDENCIES = {
@@ -102,14 +108,14 @@ class TestImportResolver(unittest.TestCase):
 			])
 		}
 		RESOLVED_DEPENDENCIES = {
-			"" : set(),
-			"setup" : set(["distutils"]),
-			"package" : set(["sys", "os.path"]),
-			"package.module" : set(["haslib.sha1", "package.test", "package.something.nested.even_more.module"]),
-			"package.subpackage" : set(["package.subpackage.hello"]),
-			"package.subpackage.module" : set([
-				"package.subpackage.hello.byebye", "package.subpackage.y.x",
-				"package.subpackage.z", "z"])
+			"dir" : set(),
+			"dir.setup" : set(["distutils"]),
+			"dir.package" : set(["sys", "os.path"]),
+			"dir.package.module" : set(["haslib.sha1", "dir.package.test", "dir.package.something.nested.even_more.module"]),
+			"dir.package.subpackage" : set(["dir.package.subpackage.hello"]),
+			"dir.package.subpackage.module" : set([
+				"dir.package.subpackage.hello.byebye", "dir.package.subpackage.y.x",
+				"dir.package.subpackage.z", "z"])
 		}
 
 		# Test with non-iterable
@@ -122,4 +128,5 @@ class TestImportResolver(unittest.TestCase):
 		with self.assertRaises(ValueError):
 			self.importResolver.resolveImports(INVALID_INPUT_DEPENDENCIES)
 		# Test with filled dependency dicitonary
+		print(self.importResolver.resolveImports(INPUT_DEPENDENCIES))
 		self.assertEqual(self.importResolver.resolveImports(INPUT_DEPENDENCIES), RESOLVED_DEPENDENCIES)

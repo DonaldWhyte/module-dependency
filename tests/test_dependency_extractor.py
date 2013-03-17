@@ -182,23 +182,6 @@ class TestWhitelistGenerator(unittest.TestCase):
 		if os.path.isdir(".test_whitelist_generator"):
 			shutil.rmtree(".test_whitelist_generator")
 
-	def test_getProjectRoot(self):
-		# Test empty path
-		with self.assertRaises(ValueError):
-			self.whitelistGenerator.getProjectRoot("")
-		# Test root path
-		if platform.system() == "Windows":
-			self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\"), "")
-		elif platform.system() == "Unix" or platform.system() == "Linux":
-			self.assertEqual(self.whitelistGenerator.getProjectRoot("/"), "")
-		# Test valid paths
-		if platform.system() == "Windows":
-			self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System\\Win32"), "Win32")
-			self.assertEqual(self.whitelistGenerator.getProjectRoot("C:\\System"), "System")		
-		elif platform.system() == "Unix" or platform.system() == "Linux":
-			self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt/python"), "python")
-			self.assertEqual(self.whitelistGenerator.getProjectRoot("/opt"), "opt")
-
 	def test_getPackageName(self):
 		# Test empty path
 		with self.assertRaises(ValueError):

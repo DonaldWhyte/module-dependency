@@ -1,2 +1,2 @@
 import project.a
-from . import a
+from . import pack

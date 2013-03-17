@@ -3,6 +3,7 @@
 import os
 import re
 from .parser import ParsedImport
+from . import util
 
 class ImportResolver:
 
@@ -47,6 +48,19 @@ class ImportResolver:
 
 		return sanitisedPath.replace("/", ".")
 
+	def addRootToPackage(self, package):
+		"""Include project's root package in package name and return result.
+
+		Arguments:
+		package -- Package to get the full name of
+
+		"""
+		rootPackage = util.getProjectRoot(self.rootDirectory)
+		if len(package) > 0:
+			return "{}.{}".format(rootPackage, package)
+		else:
+			return rootPackage
+
 	def resolveImport(self, dependantModulePath, importedModule):
 		"""Resolve relative import to full package name (relaitve to project root).
 
@@ -89,9 +103,9 @@ class ImportResolver:
 			name = importedModule.moduleName
 
 		if len(dependantModule) == 0:
-			return name
+			return self.addRootToPackage(name)
 		else:
-			return "{}.{}".format(dependantModule, name)
+			return self.addRootToPackage( "{}.{}".format(dependantModule, name) )
 
 	def resolveImports(self, dependencies):
 		"""Resolves a collection of imports to their full package names.
@@ -99,6 +113,9 @@ class ImportResolver:
 		Note that this does not just resolve imports of modules, but 
 		also transforms the absolute paths to modules to their full
 		module names.
+
+		By FULL module name, this includes the project's ROOT package
+		(which is the name of the projec's root directory).
 
 		If dependencies is not a dictionary, then a TypeError is raised.
 
@@ -117,6 +134,7 @@ class ImportResolver:
 		for modulePath, moduleDepenendencies in dependencies.items():
 			# Compute final package name of module.
 			moduleName = self.getPackageName(modulePath)
+			moduleName = self.addRootToPackage(moduleName)
 			# Ensure that __init__ is removed to make it a PACKAGE
 			if moduleName.endswith("__init__"):
 				moduleName = moduleName[:-8]
