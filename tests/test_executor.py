@@ -28,14 +28,14 @@ class MockResultOutputter(ResultOutputter):
 class TestExecutor(unittest.TestCase):
 
 	EXPECTED_DEPENDENCIES = {
-		"project" : set(),
-		"project.__main__" : set(),
+		"project" : set(["project.pack", "project.pack2"]),
+		"project.__main__" : set(["project.a", "project.pack.subpack2"]),
 		"project.a" : set(["project.a", "project.pack"]),
-		"project.pack.subpack2" : set(),
-		"project.pack.subpack2.d" : set(),
+		"project.pack.subpack2" : set(["project.pack.subpack2.subsubpack.c", "project.pack.subpack2.d"]),
+		"project.pack.subpack2.d" : set(["project.pack.subpack2.subsubpack.c", "project.pack2.e", "project.a"]),
 		"project.pack.subpack2.subsubpack.c" : set(),
-		"project.pack2.e" : set(),
-		"project.pack2.subpack.f" : set()
+		"project.pack2.e" : set(["project.pack2.subpack.f"]),
+		"project.pack2.subpack.f" : set(["project.pack2.e"])
 	}
 
 	EXPECTED_FILE_CONTENTS = """project = [ ]

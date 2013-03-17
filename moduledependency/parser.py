@@ -1,8 +1,6 @@
 """Contains functionality for parsing tokens to identify module imports and dependencies."""
-#TODO: docstring
 
 import hashlib
-
 
 class ParseError(ValueError):
 
@@ -18,10 +16,9 @@ class ParseError(ValueError):
 		"""
 		super().__init__(*args)
 
-
 class ParsedImport:
 
-	"""TODO"""
+	"""Class represents a single import made a module."""
 
 	def __init__(self, moduleName, relative):
 		"""Construct instance of ParsedImport.
@@ -42,12 +39,15 @@ class ParsedImport:
 		self.relative = relative
 
 	def isRelative(self):
+		"""Return True if the import is relative to current module."""
 		return self.relative
 
 	def __repr__(self):
+		"""Return human-readable representation of object."""
 		return str(self)
 
 	def __str__(self):
+		"""Return string representation of object."""
 		if self.isRelative():
 			importTypeStr = "relative"
 		else:
@@ -55,9 +55,11 @@ class ParsedImport:
 		return "({}, {})".format(self.moduleName, importTypeStr)
 
 	def __eq__(self, other):
+		"""Overload of equality operator for comparing imports."""
 		return (self.moduleName == other.moduleName and self.relative == other.relative)
 
 	def __ne__(self, other):
+		"""Overload of inequality operator for comparing imports."""
 		return (self.moduleName != other.moduleName or self.relative != other.relative)
 
 	def __hash__(self):
@@ -79,53 +81,59 @@ class ParsedImport:
 
 class ImportParser:
 
+	"""Class used to find imports made in Pytho source code.
+
+	Uses a list of tokens (instances of Token class) made from
+	Python source code to find these imports.
+
+	"""
+
 	def __init__(self):
+		"""Construct instance of ImportParser."""
 		self.clear()
 
 	def clear(self):
+		"""Clear parser state to make it ready for parsing another token stream."""
 		self.foundImports = set()
 		self.tokens = []
 		self.index = 0
 
 	def currentToken(self):
+		"""Return current token.
+
+		If end of token stream has been reached, then
+		None will be returned.
+
+		"""
 		if self.index < len(self.tokens):
 			return self.tokens[self.index]
 		else:
 			return None
 
 	def nextToken(self):
+		"""Move parser to next token."""
 		self.index += 1
 		return self.currentToken()
 
 	def addImport(self, moduleName, isRelative):
+		"""Add found import to the list maintained by the parser class.
+
+		Arguments:
+		moduleName -- name of the module/identifier being imported
+					  Packages and modules should be separated with
+					  ".". "." should also be at the start of the
+					  name ONLY IF the import is relative with no
+					  root package (e.g. "from . import x" is ".x"
+					  but "from .y import x" is "y.x").
+		relative -- Boolean flag indicating if the import is relative
+					to the importing module's location or if it's
+					an absolute import.
+
+		"""
 		self.foundImports.add( ParsedImport(moduleName, isRelative) )
-
-	def parse(self, tokens):
-		# If no tokens were given, don't bother trying to parse
-		if len(tokens) == 0:
-			return set()
-
-		self.clear()
-		self.tokens = tokens
-		# While we have not reached the end of the token list
-		while self.currentToken():
-			token = self.currentToken()
-			if token.type == "import":
-				self.parseImport()
-			elif token.type == "from":
-				self.parseFrom()
-			# Only go to next token if another parsing method was not called
-			else:
-				self.nextToken()
-
-		temp = self.foundImports
-		self.clear()
-
-		return temp
 
 	def parseImport(self):
 		"""Parse an absolute import."""
-		#print("Parsing import statement...")
 		# Skip "import" keyword
 		self.nextToken()
 		# Get the full name of the module being imported
@@ -134,13 +142,8 @@ class ImportParser:
 		# as one that was found by the parser
 		self.addImport(moduleName, False)
 
-		#print("...done parsing import statement.")
-
 	def parseFrom(self):
-		"""Parse "from" import statements.
-
-		TODO: mention the fact no '.' exists at start of module UNLESS
-		root is current package level and not a root module"""
+		"""Parse "from" import statements."""
 		searchForRootModule = True
 
 		# Determine if the from statement is absolute or relative.
@@ -192,23 +195,17 @@ class ImportParser:
 				fullModuleName = "{}.{}".format(rootModuleName, obj)
 				self.addImport(fullModuleName, isRelative)
 
-		#print("...done parsing from statement")
-
 	def parseImportedObjects(self):
 		"""Parse series of dotted identifiers separated by commas.
 
-		Return list of strings containing those dotted identifiers.
+		Returns list of strings containing those dotted identifiers.
 
 		"""
-		#print("Parsing imported objects...")
 		importedObjects = []
 		importedObjects.append( self.parseDottedIdentifier() )
-		token = self.currentToken()
 		while self.currentToken() and self.currentToken().type == ",":
 			self.nextToken() # skip comma operator
 			importedObjects.append( self.parseDottedIdentifier() )
-
-		#print("...done parsing imported objects.")
 
 		return importedObjects
 
@@ -219,7 +216,6 @@ class ImportParser:
 		identifier could be found immediately, then None is returned.
 
 		"""
-		#print("Parsing dotted identifier...")
 		token = self.currentToken()
 		if not token:
 			raise ParseError("Unexpected end of tokens")
@@ -239,8 +235,6 @@ class ImportParser:
 			if lookingForDot:
 				if not token: # if end of tokens has been reached
 					break
-				elif token.type == "identifier":
-					break # this is valid - just means it's the end of the current dotted identifier
 				elif token.type == ".":
 					name += "."
 					lookingForDot = False
@@ -263,3 +257,32 @@ class ImportParser:
 			return None
 		else:
 			return name
+
+	def parse(self, tokens):
+		"""Return list of found imports by parsing a list of tokens.
+
+		Arguments:
+		tokens -- A list of Token instances.
+
+		"""
+		# If no tokens were given, don't bother trying to parse
+		if len(tokens) == 0:
+			return set()
+
+		self.clear()
+		self.tokens = tokens
+		# While we have not reached the end of the token list
+		while self.currentToken():
+			token = self.currentToken()
+			if token.type == "import":
+				self.parseImport()
+			elif token.type == "from":
+				self.parseFrom()
+			# Only go to next token if another parsing method was not called
+			else:
+				self.nextToken()
+
+		temp = self.foundImports
+		self.clear()
+
+		return temp

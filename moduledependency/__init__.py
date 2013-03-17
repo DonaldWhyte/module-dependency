@@ -127,6 +127,10 @@ class Executor:
 						filteredSet.add(dep)
 				projectDependencies[key] = filteredSet
 
+		from pprint import PrettyPrinter
+		printer = PrettyPrinter()
+		printer.pprint(projectDependencies)
+
 		return projectDependencies
 
 	def execute(self, projectDirectory):

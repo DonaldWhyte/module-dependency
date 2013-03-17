@@ -100,16 +100,19 @@ class TestTokeniser(unittest.TestCase):
 		self.noImportTokens = None
 		self.importTokens = None
 
-	# def test_tokenise(self):
-	# 	# Test with invalid type
-	# 	with self.assertRaises(TypeError):
-	# 		self.tokeniser.tokenise(3636)
-	# 	# Test with empty Python source code
-	# 	self.assertEqual(self.tokeniser.tokenise(""), [])
-	# 	# Test with source code that has no imports
-	# 	self.assertEqual(self.tokeniser.tokenise(self.noImportSource), self.noImportTokens)
-	# 	# Test with source code that has imports
-	# 	self.assertEqual(self.tokeniser.tokenise(self.importSource), self.importTokens)
+	def test_tokenise(self):
+		# Test with invalid type
+		with self.assertRaises(TypeError):
+			self.tokeniser.tokenise(3636)
+		# Test with empty Python source code
+		self.assertEqual(self.tokeniser.tokenise(""), [])
+		# Test with source code that has no imports
+		self.assertEqual(self.tokeniser.tokenise(self.noImportSource), self.noImportTokens)
+		# Test with source code that has imports
+		self.assertEqual(self.tokeniser.tokenise(self.importSource), self.importTokens)
+		# Test with source that ends STRAIGHT after import
+		self.assertEqual(self.tokeniser.tokenise("from . import pack"),
+			[ Token("from"), Token("."), Token("import"), Token("identifier", "pack") ])
 
 	def test_skipComment(self):
 		# First element of tuple is the index to start skipping from

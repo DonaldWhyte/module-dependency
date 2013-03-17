@@ -148,6 +148,9 @@ class Tokeniser:
 			# Get the next character
 			ch = self.nextChar()
 
+		# Dump whatever is remaining in the buffer to a token
+		self.addTokenFromBuffer(buff)
+
 		# Clear the token list for later tokenisations
 		foundTokens = self.tokens
 		self.clear()
