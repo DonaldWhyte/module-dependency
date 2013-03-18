@@ -152,24 +152,17 @@ class ImportParser:
 		token = self.nextToken()
 		if not token:
 			raise ParseError("Unexpected end of tokens")
-		elif token.type == ".":
+		# If next token is a ".", then it's a relative import
+		if token.type == ".":
 			isRelative = True
-			# Skip the "." and move to root package/module name
-			token = self.nextToken()
-			# Now check if there is an "import" token. It's valid
-			# to just have a "." before "import" in a "from statement"
-			if token.type == "import":
-				searchForRootModule = False
 		else:
 			isRelative = False
+		# Get name of import's root module
+		rootModuleName = self.parseDottedIdentifier(True)
+		# Raise exception if no root could be fohnd
+		if rootModuleName == "":
+			raise ParseError("Could not identify root module name in 'from' statement")
 
-		# Find the ROOT module name if root is not "."
-		if searchForRootModule:
-			rootModuleName = self.parseDottedIdentifier(True)
-			if not rootModuleName:
-				raise ParseError("Module identifier should follow a 'from' keyword")
-		else:
-			rootModuleName = ""
 		# The next token should now be an "import" token
 		token = self.currentToken()
 		if not token:
@@ -184,15 +177,40 @@ class ImportParser:
 		# then the statement is a syntax error so the parse will fail
 		if len(importedObjects) == 0:
 			raise ParseError("Poorly formed 'from' statement never imported any objects: " + str(token))
+		# Compute number of "." characters at the start of the root module
+		numDotsAtStart = 0
+		for ch in rootModuleName:
+			if ch == ".":
+				numDotsAtStart += 1
+			else:
+				break
+		# If there is only one dot at the start and there's more to the
+		# root module, the dot is removed
+		if (numDotsAtStart == 1 and len(rootModuleName) > 1):
+			rootModuleName = rootModuleName[1:]
+			allDots = False
+		else:
+			allDots = (numDotsAtStart == len(rootModuleName))
+		# NOTE: "allDots" determines if a dot is put between the .
+		# If all the characters of the root are dots, then there's
+		# no need to put a dot between the root module and any
+		# imported objects.
+
 		# If the wildcard "all" was found in the list of imported objects,
 		# the it overrides the other imported obects and the entire root
 		# module was imported
 		if "*" in importedObjects:
+			if allDots:
+				pass # TODO: do something here??
 			self.addImport(rootModuleName, isRelative)
 		# Add a found module for each of the imported objects
 		else:
+			if allDots:
+				template = "{}{}"
+			else:
+				template = "{}.{}"
 			for obj in importedObjects:
-				fullModuleName = "{}.{}".format(rootModuleName, obj)
+				fullModuleName = template.format(rootModuleName, obj)
 				self.addImport(fullModuleName, isRelative)
 
 	def parseImportedObjects(self):

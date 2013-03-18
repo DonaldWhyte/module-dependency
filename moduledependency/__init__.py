@@ -113,6 +113,7 @@ class Executor:
 		# Resolve relative imports
 		resolver = ImportResolver(projectDirectory)
 		dependencies = resolver.resolveImports(dependencies)
+
 		# Prepend project directory name to all the keys. We can do
 		# this since we KNOW that all the files are contained within
 		# that project root directory.
@@ -126,12 +127,6 @@ class Executor:
 					if dep in whitelist:
 						filteredSet.add(dep)
 				projectDependencies[key] = filteredSet
-
-		from pprint import PrettyPrinter
-		printer = PrettyPrinter()
-		print()
-		printer.pprint(projectDependencies)
-		print()
 
 		return projectDependencies
 

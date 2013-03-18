@@ -32,20 +32,20 @@ class TestExecutor(unittest.TestCase):
 		"project.__main__" : set(["project.a", "project.pack.subpack2"]),
 		"project.a" : set(["project.a", "project.pack"]),
 		"project.pack.subpack2" : set(["project.pack.subpack2.subsubpack.c", "project.pack.subpack2.d"]),
-		"project.pack.subpack2.d" : set(["project.pack.subpack2.subsubpack.c", "project.pack2.e", "project.a"]),
+		"project.pack.subpack2.d" : set(["project.pack.subpack2.subsubpack.c", "project.pack2.e", "project.pack"]),
 		"project.pack.subpack2.subsubpack.c" : set(),
 		"project.pack2.e" : set(["project.pack2.subpack.f"]),
 		"project.pack2.subpack.f" : set(["project.pack2.e"])
 	}
 
-	EXPECTED_FILE_CONTENTS = """project = [ ]
-project.__main__ = [ ]
+	EXPECTED_FILE_CONTENTS = """project = [ project.pack project.pack2 ]
+project.__main__ = [ project.a project.pack.subpack2 ]
 project.a = [ project.a project.pack ]
-project.pack.subpack2 = [ ]
-project.pack.subpack2.d = [ ]
+project.pack.subpack2 = [ project.pack.subpack2.d project.pack.subpack2.subsubpack.c ]
+project.pack.subpack2.d = [ project.pack project.pack.subpack2.subsubpack.c project.pack2.e ]
 project.pack.subpack2.subsubpack.c = [ ]
-project.pack2.e = [ ]
-project.pack2.subpack.f = [ ]
+project.pack2.e = [ project.pack2.subpack.f ]
+project.pack2.subpack.f = [ project.pack2.e ]
 """
 
 	def setUp(self):
