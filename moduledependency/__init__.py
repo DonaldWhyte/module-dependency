@@ -12,7 +12,8 @@ import collections
 from fileprocessor.searchers import FileSearcher
 from fileprocessor.filterers import ExtensionFilterer, IncludeListFilterer
 from fileprocessor import FileProcessor
-from .dependency_extractor import ModuleDependencyExtractor, WhitelistGenerator
+from .dependency_extractor import ModuleDependencyExtractor
+from .whitelist import WhitelistApplier
 from .import_resolver import ImportResolver
 
 
@@ -99,11 +100,7 @@ class Executor:
 			raise IOError("'{}' is not a valid directory".format(projectDirectory))
 		# Important to make the project directory an absolute path
 		projectDirectory = os.path.abspath(projectDirectory)
-
-		# Generate list of files to consider in project directory
-		# and then remove modules which aren't in the list
-		whitelistGenerator = WhitelistGenerator()
-		whitelist = whitelistGenerator.generate(projectDirectory)
+		
 		# Extract dependencies for the project directory
 		searcher = FileSearcher(True)
 		filterers = [ ExtensionFilterer(["py"]) ]
@@ -113,22 +110,10 @@ class Executor:
 		# Resolve relative imports
 		resolver = ImportResolver(projectDirectory)
 		dependencies = resolver.resolveImports(dependencies)
-
-		# Prepend project directory name to all the keys. We can do
-		# this since we KNOW that all the files are contained within
-		# that project root directory.
-		projectDependencies = {} 
-		for key, value in dependencies.items():
-			# Only add if the package name is in the whitelist
-			if key in whitelist:
-				# Use whitelist to filter any of the module's dependencies too
-				filteredSet = set()
-				for dep in value:
-					if dep in whitelist:
-						filteredSet.add(dep)
-				projectDependencies[key] = filteredSet
-
-		return projectDependencies
+		# Finally, apply a whitelist to the dependencies to only
+		# include modules that belong to the scanned project
+		whitelistApplier = WhitelistApplier()
+		return whitelistApplier.applyToProject(projectDirectory, dependencies)
 
 	def execute(self, projectDirectory):
 		"""Execute dependency search.
