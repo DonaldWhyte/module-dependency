@@ -1,0 +1,3 @@
+class Outputter:
+
+    pass
