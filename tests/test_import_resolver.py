@@ -15,11 +15,6 @@ class TestImportResolver(unittest.TestCase):
 	def test_construction(self):
 		self.assertEqual(self.importResolver.rootDirectory, "/some/root/dir")
 
-	def test_isInRoot(self):
-		# Method tested thoroughly in test_getPackageName(). No need to add
-		# additional tests here
-		pass
-
 	def test_addRootToPackage(self):
 		# Test with empty string for package (which would be root __init__ of project)
 		self.assertEqual(self.importResolver.addRootToPackage(""), "dir")

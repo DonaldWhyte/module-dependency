@@ -2,6 +2,7 @@
 
 import os
 import re
+import platform
 from .parser import ParsedImport
 from . import util
 
@@ -19,10 +20,12 @@ class ImportResolver:
 						 directory.
 
 		"""
+		# Make sure to remove drive name from the filename if it's Windows
+		if platform.system() == "windows":
+			rootDirectory = rootDirectory[3:] # remove "C:/"
 		# Sanitise root directory by ensuring only / is used
 		# as a path separator
-		self.rootDirectory = re.sub(r"(\\|/)",
-			os.sep.replace("\\", "\\\\"), rootDirectory)
+		self.rootDirectory = re.sub(r"(\\|/)", "/", rootDirectory)
 
 	def getPackageName(self, packagePath):
 		"""Return name of package (relative to project root) given Python.
@@ -32,7 +35,7 @@ class ImportResolver:
 
 		"""
 		# Ensure package path separators are forward slashes
-		sanitisedPath = re.sub(r"(\\|/)", os.sep.replace("\\", "\\\\"), packagePath)		
+		sanitisedPath = re.sub(r"(\\|/)", "/", packagePath)		
 		# Ensure if package directory is actually inside the root directory
 		if not sanitisedPath.startswith(self.rootDirectory):
 			raise ValueError("Path '{}' is not inside project root '{}'".format(
