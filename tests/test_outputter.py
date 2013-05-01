@@ -5,7 +5,6 @@ import os
 sys.path.append(os.environ.get("PROJECT_ROOT_DIRECTORY", "."))
 
 from moduledependency.outputter import OutputterFactory
-from .outputters import test
 
 
 
@@ -26,11 +25,16 @@ class TestDepthPruner(unittest.TestCase):
             OutputterFactory("non-existent_dir8329879rhfe9hw9h9gh")
         # Test factory constructed in setUp() is correct
         self.assertEqual(self.outputterFactory.pluginDirectory, os.path.abspath("outputters"))
+        self.assertEqual(self.outputterFactory.moduleCache, {})
 
     def test_getOutputterFilename(self):
         # Trivial function difficult to construct stub values for true
-        # unit testing (due to the nature of the file path consturction).
-        # Also, this ends up being tested in 
+        # unit testing (due to the nature of the file path construction).
+        # Also, this ends up being tested in test_loadOutputter.
+        pass
+
+    def test_isSubclass(self):
+        # Tested by test_loadOutputter.
         pass
 
     def test_loadOutputter(self):
@@ -46,7 +50,7 @@ class TestDepthPruner(unittest.TestCase):
             self.outputterFactory.loadOutputter("not-subclass")
         # Test outputter with output class
         module = self.outputterFactory.loadOutputter("test")
-        self.assertTrue( isinstance(module, ModleType) )
+        self.assertTrue( isinstance(module, ModuleType) )
         # Ensure factory's cache was updated
         self.assertTrue( "test" in self.outputterFactory.moduleCache )
 
@@ -54,7 +58,7 @@ class TestDepthPruner(unittest.TestCase):
         # the cache
         self.outputterFactory.moduleCache.update( {"cache-test" : sys } )
         module = self.outputterFactory.loadOutputter("cache-test")
-        self.assertTrue( isinstance(module, ModleType) )
+        self.assertTrue( isinstance(module, ModuleType) )
 
     def test_createOutputter(self):
         # Test non-existent outputter
@@ -65,5 +69,8 @@ class TestDepthPruner(unittest.TestCase):
             self.outputterFactory.createOutputter("no-class")
         # Test outputter with output class
         outputter = self.outputterFactory.createOutputter("test")
-        self.assertTrue( isinstance(outputter, test.Outputter) )
+        outputterModule = self.outputterFactory.moduleCache["test"]
+        # Ensure created object is of the right type...
+        self.assertTrue( isinstance(outputter, outputterModule.Outputter) )
+        # ...and that it behaves correctly
         self.assertEqual( outputter.createOutput("TEST"), "TEST" )

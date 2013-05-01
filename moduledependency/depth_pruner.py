@@ -3,6 +3,13 @@ depth so higher-level views of dependencies can be constructed."""
 
 class DepthPruner:
 
+    """Used to prune dependencies with a specified depth.
+
+    Prunes dependnecies in the project hiearhcy to provide varying
+    levels of detail tp the results of dependency extractions.
+
+    """
+
     def prunePackageName(self, packageName, depth):
         """Prune package name to a specified depth.
 
@@ -88,7 +95,8 @@ class DepthPruner:
             except KeyError:
                 prunedDependencies[prunedName] = prunedSet
 
-        # TODO
+        # Remove recursive dependencies that can result from pruning process
+        # (e.g. "project.a -> project.a" is removed)
         for dependantName, dependencySet in prunedDependencies.items():
             if dependantName in dependencySet:
                 dependencySet.remove(dependantName)
