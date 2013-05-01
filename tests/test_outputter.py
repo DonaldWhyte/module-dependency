@@ -33,10 +33,6 @@ class TestDepthPruner(unittest.TestCase):
         # Also, this ends up being tested in test_loadOutputter.
         pass
 
-    def test_isSubclass(self):
-        # Tested by test_loadOutputter.
-        pass
-
     def test_loadOutputter(self):
         # Test non-existent outputter name
         with self.assertRaises(IOError):
