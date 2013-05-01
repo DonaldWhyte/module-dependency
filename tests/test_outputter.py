@@ -8,7 +8,7 @@ from moduledependency.outputter import OutputterFactory
 
 
 
-class TestDepthPruner(unittest.TestCase):
+class TestOutputterFactory(unittest.TestCase):
 
     def setUp(self):
         self.outputterFactory = OutputterFactory("outputters")

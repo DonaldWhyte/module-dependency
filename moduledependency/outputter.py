@@ -106,7 +106,7 @@ class OutputterFactory:
 
         return module
 
-    def createOutputter(self, outputterName, *args):
+    def createOutputter(self, outputterName, **kwargs):
         """Return new instance of outputter inside module with given name.
 
         Raises IOError if module for outputter with given game doesn't exist.
@@ -115,10 +115,12 @@ class OutputterFactory:
 
         Arguments:
         outputterName -- Name of the outputter to create
-        args -- Any arguments to pass to the outputter class' constructor
-                can be passed in here.
+
+        Keyword arguments:
+        kwargs -- Any keyword arguments to pass to the outputter class'
+                  constructor can be passed in here.
 
         """
         #
         module = self.loadOutputter(outputterName)
-        return module.Outputter(*args)
+        return module.Outputter(**kwargs)
