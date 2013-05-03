@@ -1,6 +1,8 @@
 from moduledependency.outputter import ResultOutputter
 
 # TODO: write docstrings
+# TODO: in docstrings make sure to mention that the generated output
+# can also be used as JSON as well as Python
 
 class Outputter(ResultOutputter):
 
