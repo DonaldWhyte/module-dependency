@@ -17,7 +17,7 @@ class Outputter(ResultOutputter):
 
     def generateDependencyList(self, dependencyList):
         output = ""
-        for dep in dependencyList:
+        for dep in sorted(dependencyList):
             output += '"{}", '.format(dep)
         # Remove trailing comma
         if len(output) > 0:
