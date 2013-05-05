@@ -10,6 +10,7 @@ from fileprocessor import FileProcessor
 from .dependency_extractor import ModuleDependencyExtractor
 from .whitelist import WhitelistApplier
 from .import_resolver import ImportResolver
+from .depth_pruner import DepthPruner
 
 class Executor:
 
@@ -23,6 +24,7 @@ class Executor:
     def __init__(self):
         """Construct new instance of Executor."""
         self.outputter = None
+        self.maximumDepth = None
 
     def setOutputter(self, newOutputter):
         """Change object which outputs results of dependency search.
@@ -33,6 +35,26 @@ class Executor:
 
         """
         self.outputter = newOutputter
+
+    def setMaximumDepth(self, maxDepth):
+        """Set maximum depth of dependencies to return. 
+
+        Arguments:
+        maxDepth -- Positive integer representing maximum depth
+                    of dependencies to produce. If None, then
+                    no maximum limit on depth will be applied.
+
+        """
+        # If None is given, we clear the depth limit
+        if maxDepth == None:
+            self.maximumDepth = None
+            return
+            
+        if not isinstance(maxDepth, int):
+            raise TypeError("Maximum depth must be an integer")
+        if maxDepth < 0:
+            raise ValueError("Maximum depth cannot be negative")
+        self.maximumDepth = maxDepth
 
     def searchForDependencies(self, projectDirectory):
         """Search for dependencies in a project.
@@ -83,8 +105,13 @@ class Executor:
                             dependencies.
 
         """
-        # Get the resolve dependencies
+        # Get the resolved dependencies
         dependencies = self.searchForDependencies(projectDirectory)
+        # If a maximum depth was specified, use a DepthPruner to prune
+        # dependencies found
+        if self.maximumDepth:
+            pruner = DepthPruner()
+            dependencies = pruner.prune(dependencies, self.maximumDepth)
         # If an outputter has been assigned, feed the dependencies to it
         if self.outputter:
             self.outputter.createOutput(dependencies)
