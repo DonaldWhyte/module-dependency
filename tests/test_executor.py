@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.environ.get("PROJECT_ROOT_DIRECTORY", "."))
 
-from moduledependency import Executor
+from moduledependency.executor import Executor
 from moduledependency.outputter import ResultOutputter
 
 
