@@ -77,7 +77,7 @@ class TestModuleDependencyExtractor(unittest.TestCase):
             self.processor.process(["test.py", "-o=dot" ])
         self.assertEqual(str(cm.exception), "Not all mandatory options have been specified")
 
-    def test_valid_arguments(self):
+    def test_valid_arguments_and_option_retrieval(self):
         # Test valid depth values,
         self.processor.process(["test.py", "-p=test", "-d=0"])
         self.assertEqual(self.processor.maxDepth, 0)
@@ -93,3 +93,12 @@ class TestModuleDependencyExtractor(unittest.TestCase):
         self.assertEqual(self.processor.getOption("some-option"), "hello!")
         self.assertEqual(self.processor.getOption("j"), "4")
         self.assertEqual(self.processor.outputterName, None)
+
+        # Test non-existent
+        with self.assertRaises(KeyError):
+            self.processor.getOption("non-existent")
+        # Test getting the same option but just using multiple names for it
+        self.assertEqual(self.processor.getOption("p"), "test")
+        self.assertEqual(self.processor.getOption("project"), "test") # wasn't directly specified
+        # Test getting option with only one name
+        self.assertEqual(self.processor.getOption("some-option"), "hello!")

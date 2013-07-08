@@ -42,8 +42,16 @@ class ArgumentProcessor:
     --[outputter_param_name]=[outputter_param_value]
 
     """
-    # Reglar expression used to match values wrapped by quotes
+    # Regular expression used to match values wrapped by quotes
     STRING_REGEX = re.compile(r"^([\"\']).*\1$")
+
+    # TODO
+    EQUIVALENT_OPTION_NAMES = [
+        ("p", "project"),
+        ("q", "quiet"),
+        ("d", "depth"),
+        ("o", "outputter")
+    ]
 
     def __init__(self):
         """Construct instance of ArgumentProcessor."""
@@ -83,7 +91,18 @@ class ArgumentProcessor:
         optionName -- Name of option whose value should be returned
 
         """
-        return self.options[optionName]
+        # If option with name does not exist, check if there are any equivalents
+        if not optionName in self.options:
+            for equivalences in self.EQUIVALENT_OPTION_NAMES:
+                if optionName in equivalences:
+                    for alternateName in equivalences:
+                        if alternateName in self.options:
+                            return self.options[alternateName]
+
+            # If this point is reached, the option is definitely not here
+            raise KeyError(optionName)
+        else:
+            return self.options[optionName]
 
     def checkMandatoryOptions(self, options):
         """Return True if all mandatory options are present and False otherwise."""
