@@ -105,7 +105,7 @@ class ArgumentProcessor:
     def getOption(self, optionName):
         """Return value of option with given name parsed from arguments.
 
-        If no vaue for that option exists, then a KeyError is raised.
+        If no vaue for that option exists, then None is returned.
 
         Arguments:
         optionName -- Name of option whose value should be returned
@@ -120,7 +120,7 @@ class ArgumentProcessor:
                             return self.options[alternateName]
 
             # If this point is reached, the option is definitely not here
-            raise KeyError(optionName)
+            return None
         else:
             return self.options[optionName]
 

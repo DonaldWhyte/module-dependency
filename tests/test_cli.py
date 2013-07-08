@@ -6,7 +6,7 @@ sys.path.append(os.environ.get("PROJECT_ROOT_DIRECTORY", "."))
 from moduledependency.cli import ArgumentProcessor
 
 
-class TestModuleDependencyExtractor(unittest.TestCase):
+class TestArgumentProcessor(unittest.TestCase):
 
     # Name of test source file
     TEST_SCRIPT_NAME = "test.py"
@@ -14,7 +14,7 @@ class TestModuleDependencyExtractor(unittest.TestCase):
     def checkForErrors(self, argLists, expectedError, exceptionType = RuntimeError):
         for args in argLists:
             with self.assertRaises(exceptionType) as cm:
-                self.processor.process([self.TEST_SCRIPT_NAME, "--project=test"] + args)
+                self.processor.process([self.TEST_SCRIPT_NAME, "--project=."] + args)
             self.assertEqual(str(cm.exception), expectedError)            
 
     def setUp(self):
@@ -72,33 +72,35 @@ class TestModuleDependencyExtractor(unittest.TestCase):
         # Test invalid depth values
         self.checkForErrors([ ["-d=haha"], ["--depth=haha"] ], "Invalid depth 'haha' provided", ValueError) # not integer
         self.checkForErrors([ ["-d=-1"], ["--depth=-441"] ], "Maximum depth cannot be negative", ValueError) # negative integers
-        # Test abscense of mandatory parameters
+        # Test absence of mandatory parameters
         with self.assertRaises(RuntimeError) as cm:
             self.processor.process(["test.py", "-o=dot" ])
         self.assertEqual(str(cm.exception), "Not all mandatory options have been specified")
 
     def test_valid_arguments_and_option_retrieval(self):
-        # Test valid depth values,
-        self.processor.process(["test.py", "-p=test", "-d=0"])
+        # Test non-existent directory
+        with self.assertRaises(IOError):
+            self.processor.process(["test.py", "-p=test", "-d=0"])
+        # Test valid depth values
+        self.processor.process(["test.py", "-p=.", "-d=0"])
         self.assertEqual(self.processor.maxDepth, 0)
-        self.processor.process(["test.py", "-p=test", "-d=1"])
+        self.processor.process(["test.py", "-p=.", "-d=1"])
         self.assertEqual(self.processor.maxDepth, 1)
-        self.processor.process(["test.py", "-p=test", "-d=29483"])
+        self.processor.process(["test.py", "-p=.", "-d=29483"])
         self.assertEqual(self.processor.maxDepth, 29483)
         # Test valid outputter name
-        self.processor.process(["test.py", "-p=test", "-o=dot"])
+        self.processor.process(["test.py", "-p=.", "-o=dot"])
         self.assertEqual(self.processor.outputterName, "dot")
         # Test arbitrary options
-        self.processor.process(["test.py", "-p=test", "--some-option=hello!", "-j=4"])
+        self.processor.process(["test.py", "-p=.", "--some-option=hello!", "-j=4"])
         self.assertEqual(self.processor.getOption("some-option"), "hello!")
         self.assertEqual(self.processor.getOption("j"), "4")
         self.assertEqual(self.processor.outputterName, None)
 
-        # Test non-existent
-        with self.assertRaises(KeyError):
-            self.processor.getOption("non-existent")
+        # Test non-existent option
+        self.assertEqual(self.processor.getOption("non-existent"), None)
         # Test getting the same option but just using multiple names for it
-        self.assertEqual(self.processor.getOption("p"), "test")
-        self.assertEqual(self.processor.getOption("project"), "test") # wasn't directly specified
+        self.assertEqual(self.processor.getOption("p"), ".")
+        self.assertEqual(self.processor.getOption("project"), ".") # wasn't directly specified
         # Test getting option with only one name
         self.assertEqual(self.processor.getOption("some-option"), "hello!")
