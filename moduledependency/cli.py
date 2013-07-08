@@ -3,6 +3,7 @@ into data that can be retrieved easily.
 
 """
 
+import os
 import re
 
 class ArgumentProcessor:
@@ -68,10 +69,16 @@ class ArgumentProcessor:
         self.checkForUsageMessage(args)
         self.options = self.parseOptions(args[1:]) # remove the program name
         # Check for specific options and validate them
+        if "p" in self.options:
+            self.setProjectDirectory( self.options["p"] )
+        elif "project" in self.options:
+            self.setProjectDirectory( self.options["project"] )
         if "d" in self.options:
             self.maxDepth = self.validateDepth(self.options["d"])
         elif "depth" in self.options:
             self.maxDepth = self.validateDepth(self.options["depth"])
+        else:
+            self.maxDepth = None
         if "o" in self.options:
             self.outputterName = self.options["o"]
         elif "outputter" in self.options:
@@ -81,6 +88,19 @@ class ArgumentProcessor:
 
         if not self.checkMandatoryOptions(self.options):
             raise RuntimeError("Not all mandatory options have been specified")
+
+    def setProjectDirectory(self, directory):
+        """Set project directory.
+
+        If not directory does not exist, an IOError will be raised.
+
+        Arguments:
+        directory -- Path to project directory
+
+        """
+        if not os.path.isdir(directory):
+            raise IOError("Directory '{}' does not exist".format(directory))
+        self.projectDirectory = directory
 
     def getOption(self, optionName):
         """Return value of option with given name parsed from arguments.
