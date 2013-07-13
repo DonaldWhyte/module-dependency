@@ -17,7 +17,7 @@ if __name__ == "__main__":
     if argProcessor.outputterName:
         # Get all arguments that may be for the outputter (options
         # not recognised as being anythiing else by the argument processor)
-        outputter = outputterFactory.createOutputter(argProcessor.outputterName, outputterArgs)
+        outputter = outputterFactory.createOutputter(argProcessor.outputterName, **argProcessor.getOutputterArguments())
     else:
         outputter = None
 

@@ -5,6 +5,7 @@ into data that can be retrieved easily.
 
 import os
 import re
+from copy import deepcopy
 
 class ArgumentProcessor:
 
@@ -46,12 +47,16 @@ class ArgumentProcessor:
     # Regular expression used to match values wrapped by quotes
     STRING_REGEX = re.compile(r"^([\"\']).*\1$")
 
-    # TODO
+    # Tuples containing option names which are equivalent
     EQUIVALENT_OPTION_NAMES = [
         ("p", "project"),
         ("q", "quiet"),
         ("d", "depth"),
         ("o", "outputter")
+    ]
+    # Contains list of all standard, non-outputter specific options
+    STANDARD_OPTIONS = [
+        "p", "project", "q", "quiet", "d", "depth", "o", "outputter"
     ]
 
     def __init__(self):
@@ -232,7 +237,7 @@ class ArgumentProcessor:
         is negative, then a ValueError is raised.
 
         Arguments:
-        depth -- Stirng containing positive integer
+        depth -- String containing positive integer
 
         """
         try:
@@ -242,3 +247,16 @@ class ArgumentProcessor:
         if depth < 0:
             raise ValueError("Maximum depth cannot be negative")
         return depth
+
+    def getOutputterArguments(self):
+        """Return dictinary only containing non-standard arguments.
+
+        This assuems that non-standard arguments are intended for
+        the outputter.
+
+        """
+        args = deepcopy(self.options)
+        for name in self.STANDARD_OPTIONS:
+            if name in args:
+                del args[name]
+        return args

@@ -114,6 +114,8 @@ class Executor:
             dependencies = pruner.prune(dependencies, self.maximumDepth)
         # If an outputter has been assigned, feed the dependencies to it
         if self.outputter:
-            self.outputter.createOutput(dependencies)
+            output = self.outputter.createOutput(dependencies)
+            if output:
+                print(output)
 
         return dependencies

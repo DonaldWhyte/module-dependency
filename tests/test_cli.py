@@ -104,3 +104,6 @@ class TestArgumentProcessor(unittest.TestCase):
         self.assertEqual(self.processor.getOption("project"), ".") # wasn't directly specified
         # Test getting option with only one name
         self.assertEqual(self.processor.getOption("some-option"), "hello!")
+
+        expectedArgs = { "some-option" : "hello!", "j" : "4" }
+        self.assertEqual(self.processor.getOutputterArguments(), expectedArgs)
