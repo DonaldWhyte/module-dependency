@@ -6,7 +6,7 @@ from moduledependency.outputter import ResultOutputter
 
 class Outputter(ResultOutputter):
 
-    GRAPH_FORMAT = "graph dependencies {{\n{}}}"
+    GRAPH_FORMAT = "digraph dependencies {{\n{}}}"
     NODE_FORMAT = "\t{};\n"
     EDGE_FORMAT = "\t{} -> {};\n"
 
