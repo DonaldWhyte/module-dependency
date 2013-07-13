@@ -102,6 +102,9 @@ class ImportParser:
 
 	"""
 
+	# List of token values to ignore when parsing a dotted identifier
+	DOTTED_IDENTIFIER_IGNORE_LIST = [ "(", ")",  "\\" ]
+
 	def __init__(self):
 		"""Construct instance of ImportParser."""
 		self.clear()
@@ -257,11 +260,15 @@ class ImportParser:
 		name = ""
 
 		token = self.currentToken()
+		while token and token.value in self.DOTTED_IDENTIFIER_IGNORE_LIST:
+			token = self.nextToken()		
 		if not token:
 			raise ParseError("TODO", 1, 1, "Unexpected end of tokens")
+
+
 		# Check straight away if the next token is the "all" wildcard.
 		# if it is, just return "*" as the identifier
-		elif token.type == "*":
+		if token.type == "*":
 			self.nextToken()
 			return "*"
 		# If identifier starts with a dot character and it's allowed,
@@ -282,24 +289,28 @@ class ImportParser:
 		# Parse identifier
 		lookingForDot = False
 		while True:
-			if lookingForDot:
-				if not token: # if end of tokens has been reached
+			# End of tokens has been reached
+			if not token:
+				if lookingForDot:
 					break
-				elif token.type == ".":
-					name += "."
-					lookingForDot = False
 				else:
-					break
-			else:
-				if not token:
 					raise ParseError("TODO", 1, 1, "Unexpected end of tokens - trailing dot operator")
-				elif token.type == "identifier":
-					name += token.value
-					lookingForDot = True
-				elif token.type == ".":
-					raise ParseError("TODO", 1, 1, "Invalid identifier - two consecutive dot operators present")
-				else: # end parsing dotted identifier
-					break
+			# Make sure the current token isn't something we want to skip
+			if not token.value in self.DOTTED_IDENTIFIER_IGNORE_LIST:			
+				if lookingForDot:
+					if token.type == ".":
+						name += "."
+						lookingForDot = False					
+					else:
+						break
+				else:
+					if token.type == "identifier":
+						name += token.value
+						lookingForDot = True
+					elif token.type == ".":
+						raise ParseError("TODO", 1, 1, "Invalid identifier - two consecutive dot operators present")
+					else: # end parsing dotted identifier
+						break
 
 			token = self.nextToken()
 

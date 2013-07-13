@@ -90,58 +90,60 @@ class TestImportParser(unittest.TestCase):
 		self.assertEqual(self.parser.parse(self.validImportTokens), self.foundImports)
 
 	def test_parseDottedIdentifier(self):
-		invalidIdentifierTokens1 = [ Token("other", "(") ]
-		invalidIdentifierTokens2 = [ Token(".") ]
-		invalidIdentifierTokens3 = [ Token("identifier", "invalid"), Token(".") ]
-		invalidIdentifierTokens4 = [ Token("identifier", "invalid"), Token("."), Token(".") ]
-		validIdentifierTokens1 = [ Token("identifier", "test") ]
-		validIdentifierTokens2 = [ Token("identifier", "test"), Token("."), Token("identifier", "anotherTest") ]
-		validIdentifierTokens3 = [ Token("identifier", "test"), Token("."), Token("identifier", "anotherTest"), Token("."), Token("identifier", "ultimateNesting") ]
-		validIdentifierTokens4 = [ Token("identifier", "test"), Token("identifier", "endOfSameIdentifier") ]
-		validIdentifierTokens5 = [ Token("identifier", "test"), Token("."), Token("identifier", "anotherTest"), Token("identifier", "endOfSameIdentifier")  ]
+		invalidIdentifierTokens = [
+			[ Token(".") ],
+			[ Token("identifier", "invalid"), Token(".") ],
+			[ Token("identifier", "invalid"), Token("."), Token(".") ]
+		]
+		validIdentifierTokens1 = [ Token("identifier", "test") ] # without brackets
+		validIdentifierTokens2 = [ Token("other", "("), Token("identifier", "test"), Token("other", ")") ] # with brackets
+		validIdentifierTokens3 = [ Token("other", "("), Token("identifier", "test") ] # just (
+		validIdentifierTokens4 = [ Token("identifier", "test"), Token("other", ")") ] # just )
+		validIdentifierTokens5 = [ Token("identifier", "test"), Token("."), Token("identifier", "anotherTest") ]
+		validIdentifierTokens6 = [ Token("identifier", "test"), Token("."), Token("identifier", "anotherTest"), Token("."), Token("identifier", "ultimateNesting") ]
+		validIdentifierTokens7 = [ Token("identifier", "test"), Token("identifier", "endOfSameIdentifier") ]
+		validIdentifierTokens8 = [ Token("identifier", "test"), Token("."), Token("identifier", "anotherTest"), Token("identifier", "endOfSameIdentifier")  ]
 
-		# Test invalid identifier
-		self.parser.tokens = invalidIdentifierTokens1
-		with self.assertRaises(ParseError):
-			self.parser.parseDottedIdentifier()
-		self.parser.clear()		
-		# Test invalid identifier due to just a dot
-		self.parser.tokens = invalidIdentifierTokens2
-		with self.assertRaises(ParseError):
-			self.parser.parseDottedIdentifier()
-		self.parser.clear()
-		# Test invalid identifier due to trailing dot
-		self.parser.tokens = invalidIdentifierTokens3
-		with self.assertRaises(ParseError):
-			self.parser.parseDottedIdentifier()
-		self.parser.clear()
-		# Test invalid identifier due to two dots being used in succession
-		self.parser.tokens = invalidIdentifierTokens4
-		with self.assertRaises(ParseError):
-			self.parser.parseDottedIdentifier()
-		self.parser.clear()
+		# Test invalid identifiers
+		for tokens in invalidIdentifierTokens:		
+			self.parser.tokens = tokens
+			with self.assertRaises(ParseError):
+				self.parser.parseDottedIdentifier()
+			self.parser.clear()
 		# Test identifier without a dot
 		self.parser.tokens = validIdentifierTokens1
 		self.assertEqual(self.parser.parseDottedIdentifier(), "test")
 		self.assertEqual(self.parser.index, 1)
 		self.parser.clear()	
-		# Test identifier with a dot
 		self.parser.tokens = validIdentifierTokens2
+		self.assertEqual(self.parser.parseDottedIdentifier(), "test")
+		self.assertEqual(self.parser.index, 3)
+		self.parser.clear()	
+		self.parser.tokens = validIdentifierTokens3
+		self.assertEqual(self.parser.parseDottedIdentifier(), "test")
+		self.assertEqual(self.parser.index, 2)
+		self.parser.clear()			
+		self.parser.tokens = validIdentifierTokens4
+		self.assertEqual(self.parser.parseDottedIdentifier(), "test")
+		self.assertEqual(self.parser.index, 2)
+		self.parser.clear()
+		# Test identifier with a dot
+		self.parser.tokens = validIdentifierTokens5
 		self.assertEqual(self.parser.parseDottedIdentifier(), "test.anotherTest")
 		self.assertEqual(self.parser.index, 3)
 		self.parser.clear()	
 		# Test identifier with multiple dots
-		self.parser.tokens = validIdentifierTokens3
+		self.parser.tokens = validIdentifierTokens6
 		self.assertEqual(self.parser.parseDottedIdentifier(), "test.anotherTest.ultimateNesting")
 		self.assertEqual(self.parser.index, 5)
 		self.parser.clear()	
 		# Test indeitifers where this is an identifier token at end,
 		# which SHOULD break up the parsing of the identifier
-		self.parser.tokens = validIdentifierTokens4
+		self.parser.tokens = validIdentifierTokens7
 		self.assertEqual(self.parser.parseDottedIdentifier(), "test")
 		self.assertEqual(self.parser.index, 1)
 		self.parser.clear()	
-		self.parser.tokens = validIdentifierTokens5
+		self.parser.tokens = validIdentifierTokens8
 		self.assertEqual(self.parser.parseDottedIdentifier(), "test.anotherTest")
 		self.assertEqual(self.parser.index, 3)
 		self.parser.clear()	
