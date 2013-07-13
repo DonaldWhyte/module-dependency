@@ -6,15 +6,29 @@ class ParseError(ValueError):
 
 	"""Exception class raised if an error in parsing occurs."""
 
-	def __init__(self, *args):
+	def __init__(self, filename, lineNumber, columnNumber, message):
 		"""Construct instance of ParseError.
 
 		Arguments:
-		args -- Any arguments that can be passed to ValueError
-				can be provided.
+		lineNumber -- Line of source file the parse error occurred
+		columnNumber -- Number of characters into the line the
+						parse error occurred
+		message -- Description of error
 
 		"""
-		super().__init__(*args)
+		self.filename = filename
+		self.line = lineNumber
+		self.column = columnNumber
+		self.message = message
+		super().__init__(message)
+
+	def __str__(self):
+		return "Parse error in {} (Line {}, Column {}): {}".format(
+			self.filename, self.line, self.column, self.message)
+
+	def __repr__(self):
+		return str(self)
+
 
 class ParsedImport:
 
@@ -151,7 +165,7 @@ class ImportParser:
 		# "from" keyword should be a ".".
 		token = self.nextToken()
 		if not token:
-			raise ParseError("Unexpected end of tokens")
+			raise ParseError("TODO", 1, 1, "Unexpected end of tokens")
 		# If next token is a ".", then it's a relative import
 		if token.type == ".":
 			isRelative = True
@@ -161,14 +175,14 @@ class ImportParser:
 		rootModuleName = self.parseDottedIdentifier(True)
 		# Raise exception if no root could be fohnd
 		if rootModuleName == "":
-			raise ParseError("Could not identify root module name in 'from' statement")
+			raise ParseError("TODO", 1, 1, "Could not identify root module name in 'from' statement")
 
 		# The next token should now be an "import" token
 		token = self.currentToken()
 		if not token:
-			raise ParseError("Unexpected end of tokens")
+			raise ParseError("TODO", 1, 1, "Unexpected end of tokens")
 		elif token.type != "import":
-			raise ParseError("'import' keyword should follow root moudle name in 'from' import statement: " + str(token))		
+			raise ParseError("TODO", 1, 1, "'import' keyword should follow root module name in 'from' import statement: " + str(token))		
 		# Now get the name of all the objects
 		self.nextToken() # skip the import tag
 		importedObjects = self.parseImportedObjects()
@@ -176,7 +190,7 @@ class ImportParser:
 		# If there were no objects imported using the 'from' satement
 		# then the statement is a syntax error so the parse will fail
 		if len(importedObjects) == 0:
-			raise ParseError("Poorly formed 'from' statement never imported any objects: " + str(token))
+			raise ParseError("TODO", 1, 1, "Poorly formed 'from' statement never imported any objects: " + str(token))
 		# Compute number of "." characters at the start of the root module
 		numDotsAtStart = 0
 		for ch in rootModuleName:
@@ -244,7 +258,7 @@ class ImportParser:
 
 		token = self.currentToken()
 		if not token:
-			raise ParseError("Unexpected end of tokens")
+			raise ParseError("TODO", 1, 1, "Unexpected end of tokens")
 		# Check straight away if the next token is the "all" wildcard.
 		# if it is, just return "*" as the identifier
 		elif token.type == "*":
@@ -263,7 +277,7 @@ class ImportParser:
 		# Also check if the first token is an identifier. A valid
 		# dootted identifier must START with an "identifier" token
 		elif token.type != "identifier":
-			raise ParseError("Dotted identifier must start with an identifier token")
+			raise ParseError("TODO", 1, 1, "Dotted identifier must start with an identifier token")
 
 		# Parse identifier
 		lookingForDot = False
@@ -278,12 +292,12 @@ class ImportParser:
 					break
 			else:
 				if not token:
-					raise ParseError("Unexpected end of tokens - trailing dot operator")
+					raise ParseError("TODO", 1, 1, "Unexpected end of tokens - trailing dot operator")
 				elif token.type == "identifier":
 					name += token.value
 					lookingForDot = True
 				elif token.type == ".":
-					raise ParseError("Invalid identifier - two consecutive dot operators present")
+					raise ParseError("TODO", 1, 1, "Invalid identifier - two consecutive dot operators present")
 				else: # end parsing dotted identifier
 					break
 

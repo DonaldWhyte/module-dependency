@@ -136,6 +136,8 @@ class ModuleDependencyExtractor(TextExtractor):
 
 		"""
 		tokens = self.tokeniser.tokenise(data)
+		print(data)
+		print(tokens)
 		foundDepdendencies = self.parser.parse(tokens)
 		if self.usingWhitelist():
 			return self.applyWhitelist(foundDepdendencies)

@@ -218,24 +218,21 @@ class Tokeniser:
 		of the closing string delimiter or end of source.
 
 		Arguments:
-		startingDelimiter -- The quote character(s) that started
-							 the literal. Used to determine when
-							 the literal ends. ValueError is
-							 raised if this is not a valid string
-							 delimiter.
+		startingChar -- The quote character(s) that started
+						the literal. Used to determine when
+						the literal ends. ValueError is
+						raised if this is not a valid string
+						delimiter.
 
 		"""
 		if not startingChar in VALID_STRING_DELIMITERS:
 			raise ValueError("{} is not a valid string delimiter".format(startingChar))
-		buff = ""
-		ch = self.currentChar()
-		while ch and buff != startingChar: # while we haven't reached the starting delimiter
-			ch = self.nextChar()
-			if ch in ("\'", "\""):
-				if len(buff) > 0:
-					if buff[-1] == ch:
-						buff += ch
-					else: # empty buffer since the delimiter doesn't match the one we want
-						buff = ""
-				else:
-					buff += ch
+
+		# Find first occurrence of starting character from the remaining string
+		remainingString = self.source[(self.index + 1):]
+		endIndex = remainingString.find(startingChar)
+		# If an occurrence was not found, we've reached the end of the string
+		if endIndex == -1:
+			self.index = len(self.source)
+		else:
+			self.index += endIndex + 1

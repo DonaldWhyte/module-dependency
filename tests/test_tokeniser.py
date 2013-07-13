@@ -37,6 +37,7 @@ class TestTokeniser(unittest.TestCase):
 
 		'test'
 		something = [ "hello" ]
+
 		"""
 		self.importSource = """#comment here
 		import a
@@ -135,19 +136,19 @@ class TestTokeniser(unittest.TestCase):
 		# element is where the tokeniser should stop skipping and
 		# the third element is the delimiter of the test string
 		TEST_INDICES = [ 
-			(31, 37, "\""),
-			(49, 54, "\'"),
-			(68, 88, "\"\"\""),
-			(102, 130, "'''"),
-			(142, 156, "\"")
+			(31, 6, "\""),
+			(49, 5, "\'"),
+			(68, 20, "\"\"\""),
+			(104, 34, "'''"),
+			(152, 13, "\"")
 		]
 		# Set the source code that will be used for comment skipping
 		TEST_SOURCE = """#comment at the start
 		test = "hello"
 		test2 = 'ello'
-		test3 = \"\"\"hello
+		test3 = \"\"\""hello"
 		multiline\"\"\"
-		test4 = '''can be multiline but isn't'''
+		test4 = '''can be multiline but 'test' isn't'''
 		no_end=" ijruiytie
 		"""
 		for test in TEST_INDICES:
@@ -155,4 +156,4 @@ class TestTokeniser(unittest.TestCase):
 			self.tokeniser.source = TEST_SOURCE
 			self.tokeniser.index = test[0]
 			self.tokeniser.skipString(test[2])
-			self.assertEqual(self.tokeniser.index, test[1])
+			self.assertEqual(self.tokeniser.index, test[0] + test[1])
