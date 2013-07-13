@@ -240,7 +240,13 @@ class ImportParser:
 		importedObjects.append( self.parseDottedIdentifier() )
 		while self.currentToken() and self.currentToken().type == ",":
 			self.nextToken() # skip comma operator
-			importedObjects.append( self.parseDottedIdentifier() )
+			# Try and get the next dotted identifier in the list. Just in case
+			# the comma is TRAILING (nothing else actually after it), look
+			# for ParseErrors and break out of the loop.
+			try:
+				importedObjects.append( self.parseDottedIdentifier() )
+			except ParseError:
+				break
 
 		return importedObjects
 
