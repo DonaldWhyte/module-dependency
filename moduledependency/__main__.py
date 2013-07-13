@@ -26,7 +26,7 @@ if __name__ == "__main__":
     if outputter:
         executor.setOutputter(outputter)        
     try:
-        executor.setMaximumDepth(argProcessor.getOption("depth"))
+        executor.setMaximumDepth(argProcessor.maxDepth)
     except KeyError:
         pass
 
