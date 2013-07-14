@@ -136,16 +136,16 @@ class TestTokeniser(unittest.TestCase):
 		# element is where the tokeniser should stop skipping and
 		# the third element is the delimiter of the test string
 		TEST_INDICES = [ 
-			(31, 6, "\""),
-			(49, 5, "\'"),
-			(68, 20, "\"\"\""),
-			(104, 34, "'''"),
-			(152, 13, "\"")
+			(31, 8, "\""),
+			(51, 7, "\'"),
+			(70, 24, "\"\"\""),
+			(106, 38, "'''"),
+			(154, 15, "\""),
 		]
 		# Set the source code that will be used for comment skipping
 		TEST_SOURCE = """#comment at the start
-		test = "hello"
-		test2 = 'ello'
+		test = "hel\\"lo"
+		test2 = 'el\\'lo'
 		test3 = \"\"\""hello"
 		multiline\"\"\"
 		test4 = '''can be multiline but 'test' isn't'''

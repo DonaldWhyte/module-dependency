@@ -10,7 +10,11 @@ VALID_TOKEN_TYPES = (
 VALID_STRING_DELIMITERS = (
 	"\'", "\"", "\'\'\'", "\"\"\""
 )
-
+END_OF_STRING_REGEX_PREFIX = r'[^\\]'
+END_OF_STRING_REGEXES = {}
+for delimeter in VALID_STRING_DELIMITERS:
+	regexStr = END_OF_STRING_REGEX_PREFIX + delimeter
+	END_OF_STRING_REGEXES[delimeter] = re.compile(regexStr)
 
 class Token:
 
@@ -228,11 +232,14 @@ class Tokeniser:
 		if not startingChar in VALID_STRING_DELIMITERS:
 			raise ValueError("{} is not a valid string delimiter".format(startingChar))
 
-		# Find first occurrence of starting character from the remaining string
+		# Find first occurrence of required string delimeter
+		# from the remaining string, wheere it DOES NOT precede
+		# with an escapet character (\)
 		remainingString = self.source[(self.index + 1):]
-		endIndex = remainingString.find(startingChar)
-		# If an occurrence was not found, we've reached the end of the string
-		if endIndex == -1:
-			self.index = len(self.source)
+		match = END_OF_STRING_REGEXES[startingChar].search(remainingString)
+
+		if match:
+			self.index += match.end()
+		# If an occurrence was not found, we've reached the end of the string	
 		else:
-			self.index += endIndex + 1
+			self.index = len(self.source)

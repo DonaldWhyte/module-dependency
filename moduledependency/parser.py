@@ -271,7 +271,6 @@ class ImportParser:
 		if not token:
 			raise ParseError("TODO", 1, 1, "Unexpected end of tokens")
 
-
 		# Check straight away if the next token is the "all" wildcard.
 		# if it is, just return "*" as the identifier
 		if token.type == "*":
