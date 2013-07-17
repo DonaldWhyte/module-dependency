@@ -10,10 +10,10 @@ VALID_TOKEN_TYPES = (
 VALID_STRING_DELIMITERS = (
 	"\'", "\"", "\'\'\'", "\"\"\""
 )
-END_OF_STRING_REGEX_PREFIX = r'[^\\]'
+REGEX_TEMPLATE = r'([^\\]{}|\\\\{})'
 END_OF_STRING_REGEXES = {}
 for delimeter in VALID_STRING_DELIMITERS:
-	regexStr = END_OF_STRING_REGEX_PREFIX + delimeter
+	regexStr = REGEX_TEMPLATE.format(delimeter, delimeter)
 	END_OF_STRING_REGEXES[delimeter] = re.compile(regexStr)
 
 class Token:
@@ -103,6 +103,13 @@ class Tokeniser:
 		"""Increment character index and returns the new character."""
 		self.index += 1
 		return self.currentChar()
+
+	def peekChar(self):
+		"""Return next character but doesn't increment the character index."""
+		if (self.index + 1) < len(self.source):
+			return self.source[self.index + 1]
+		else:
+			return None
 
 	def tokenise(self, source):
 		"""Return list of Token objects by tokensing Python source code.
@@ -232,14 +239,18 @@ class Tokeniser:
 		if not startingChar in VALID_STRING_DELIMITERS:
 			raise ValueError("{} is not a valid string delimiter".format(startingChar))
 
-		# Find first occurrence of required string delimeter
-		# from the remaining string, wheere it DOES NOT precede
-		# with an escapet character (\)
-		remainingString = self.source[(self.index + 1):]
-		match = END_OF_STRING_REGEXES[startingChar].search(remainingString)
-
-		if match:
-			self.index += match.end()
-		# If an occurrence was not found, we've reached the end of the string	
+		# If the immediate next character ends the string (empty string), just move to the
+		# next character
+		if (self.peekChar() == startingChar):
+			self.nextChar()
 		else:
-			self.index = len(self.source)
+			# Find first occurrence of required string delimeter
+			# from the remaining string, wheere it DOES NOT precede
+			# with an escape character (\)
+			remainingString = self.source[(self.index + 1):]
+			match = END_OF_STRING_REGEXES[startingChar].search(remainingString)
+			if match:
+				self.index += match.end()
+			# If an occurrence was not found, we've reached the end of the string	
+			else:
+				self.index = len(self.source)
