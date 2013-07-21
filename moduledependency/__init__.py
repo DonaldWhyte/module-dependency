@@ -7,6 +7,9 @@ as well as utility code for outputting the found results.
 
 import os
 
+# Constant which specifies what version of moduledependency this is
+VERSION = "0.1"
+
 # Done so importing modules from library is easier
 def getSubModulesAndPackages():
 	"""Return list of all modules and packages contained within current package."""

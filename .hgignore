@@ -3,3 +3,4 @@ syntax: glob
 # Ignore pre-compiled Python code
 *.pyc
 *__pycache__*
+build/*
