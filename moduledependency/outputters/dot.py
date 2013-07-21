@@ -30,11 +30,13 @@ class Outputter(ResultOutputter):
     def generateGraph(self, dependencies):
         output = ""
         dependants = sorted(dependencies.keys()) # sorted so results are consistent
-        # First make sure all dependants are defined
-        for dependant in dependants:
-            output += self.generateDependant(dependant)
         # Now make each dependency an edge in the graph
         for dependant in dependants:
-            for dependency in dependencies[dependant]:
-                output += self.generateDependency(dependant, dependency)
+            currentDependencies = dependencies[dependant]
+            # If the module has NO dependencies,  generate a single node for it.
+            if len(currentDependencies) == 0:
+                output += self.generateDependant(dependant)
+            else:
+                for dependency in currentDependencies:
+                    output += self.generateDependency(dependant, dependency)
         return self.GRAPH_FORMAT.format(output)
