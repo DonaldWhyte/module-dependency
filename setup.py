@@ -24,6 +24,7 @@ setup(
 	],
 	keywords="dependency module searcher project automatic code analysis generator",
 	license="MIT",
-	packages=("moduledependency",),
+	packages=("moduledependency","moduledependency.outputters"),
+	scripts=('module-dependency.py',),
 	data_files=[ (".", ["LICENCE"]) ]
 )

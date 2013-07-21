@@ -9,6 +9,8 @@ import os
 
 # Constant which specifies what version of moduledependency this is
 VERSION = "0.1"
+# Directory containing this moduledependency package installation
+MODULEDEPENDENCY_DIR = os.path.abspath( os.path.dirname(__file__) )
 
 # Done so importing modules from library is easier
 def getSubModulesAndPackages():
@@ -32,3 +34,4 @@ def getSubModulesAndPackages():
 
 	return modulesToImport
 __all__ = getSubModulesAndPackages()
+
