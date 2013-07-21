@@ -1,1 +1,49 @@
-TODO
+moduledependency is a Python program that scans Python projects and extracts
+inter-project dependencies between packages/modules.
+
+DOCUMENTATION
+-------------
+
+Overview of moduledependency's design can be found here:
+https://code.google.com/p/module-dependency/wiki/DesignOverview
+
+Installation instructions can be found here:
+https://code.google.com/p/module-dependency/wiki/InstallationGuide
+
+Usage instructions can be found here:
+https://code.google.com/p/module-dependency/wiki/ProgramUsageGuide
+
+
+TESTS
+-----
+
+Unit tests are provided in the 'tests' directory. To run all the unit tests
+simply navigate into the 'tests' directory and invoke the following command:
+
+python run_test.py -d .. -w .
+
+To run a single test file, invoke the following command in the 'tests'
+directory:
+
+python run_test.py -d .. -w . -t "[TEST_NAME]"
+
+[TEST_NAME] is the name of the test file without the "test_" prefix or ".py"
+suffix. For example, if [TEST_NAME] = filterers, then the test file
+"test_filterers.py" will be executed.
+
+
+SOURCE
+------
+
+Snapshots and significant releases can be downloaded at:
+http://code.google.com/p/module-dependency/
+
+To clone the up-to-date repository, you must have Mercurial installed and use:
+hg clone https://code.google.com/p/module-dependency/ 
+
+
+LICENCE
+-------
+
+fileprocess is licensed under the MIT License.
+See LICENCE for more information.
