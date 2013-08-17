@@ -140,7 +140,7 @@ class TestTokeniser(unittest.TestCase):
 			(51, 7, "\'"),
 			(70, 24, "\"\"\""),
 			(106, 38, "'''"),
-			(154, 15, "\""),
+			(155, 14, "\"")
 		]
 		# Set the source code that will be used for comment skipping
 		TEST_SOURCE = """#comment at the start

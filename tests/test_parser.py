@@ -226,10 +226,10 @@ class TestImportParser(unittest.TestCase):
 		with self.assertRaises(ParseError):
 			self.parser.parseImportedObjects()
 		self.parser.clear()
-		# Test with trailing commas
+		# Test with trailing commas (SHOULDN'T CAUSE AN ERROR as we're resilient to that!)
 		self.parser.tokens = [ Token("identifier", "test"), Token(","), Token("identifier", "test2"), Token(","), Token(",") ]
-		with self.assertRaises(ParseError):
-			self.parser.parseImportedObjects()
+		self.assertEqual( self.parser.parseImportedObjects(), ["test", "test2"] )
+		self.assertEqual( self.parser.index, 5)
 		self.parser.clear()
 
 		# Test with a single identifier
