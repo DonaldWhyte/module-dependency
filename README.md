@@ -232,7 +232,7 @@ To run a single test file, invoke the following command in the 'tests' directory
 python run_test.py -d .. -w . -t TEST_NAME
 ```
 
-`TEST_NAME` is the name of the test file without the "test_" prefix or ".py" suffix. For example, if `TEST_NAME` = filterers, then the test file "test_filterers.py" will be executed.
+`TEST_NAME` is the name of the test file without the "test_" prefix or ".py" suffix. For example, if `TEST_NAME = filterers`, then the test file "test_filterers.py" will be executed.
 
 ### Architecture
 
