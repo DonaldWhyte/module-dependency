@@ -238,7 +238,7 @@ python run_test.py -d .. -w . -t TEST_NAME
 
 A diagram illustrating moduledependency's architecture is given below.
 
-![moduledependency Architecture Diagram](https://raw.github.com/DonaldWhyte/fileprocessor/master/docs/moduledependency_architecture.png)
+![moduledependency Architecture Diagram](https://raw.github.com/DonaldWhyte/module-dependency/master/docs/moduledependency_architecture.png)
 
 ### Source Code
 
